@@ -143,3 +143,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30dd25176e2d3284aba59a1e68d69450, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerBulletPrefab: {fileID: 4220916535825723759, guid: 3510da7a390f3bc4e885d8bac40cd674, type: 3}
+  reflectSpeed: 20

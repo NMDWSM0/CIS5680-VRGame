@@ -37,7 +37,7 @@ public class EnemyBullet : MonoBehaviour
             Shield shield = other.gameObject.GetComponentInParent<Shield>();
             if (shield != null)
             {
-                shield.Absorb(damage);
+                shield.ProcessHit(this);
             }
         }
 
