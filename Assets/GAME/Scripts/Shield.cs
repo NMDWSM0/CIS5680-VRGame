@@ -64,8 +64,8 @@ public class Shield : MonoBehaviour
             incomingDir = bulletRb.velocity.normalized;
         }
 
-        // Reflect using the shield's forward as the normal
-        Vector3 reflectDir = Vector3.Reflect(incomingDir, transform.forward);
+        // Reflect using the shield's up as the normal
+        Vector3 reflectDir = Vector3.Reflect(incomingDir, transform.up);
 
         GameObject reflectedBullet;
 
