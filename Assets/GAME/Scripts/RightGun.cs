@@ -84,36 +84,6 @@ public class RightGun : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        // Manage the laser sight / red dot position every frame
-        if (rayInteractor != null && reticleVisual != null)
-        {
-            // If the ray interactor is pointing at a UI element, hide the world-dot
-            if (rayInteractor.TryGetCurrentUIRaycastResult(out RaycastResult uiResult))
-            {
-                if (reticleVisual.activeSelf) reticleVisual.SetActive(false);
-                return;
-            }
-
-            // Check where the ray interactor is currently hitting in the 3D world
-            if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
-            {
-                if (!reticleVisual.activeSelf) reticleVisual.SetActive(true);
-                
-                // Move the dot perfectly to the hit point
-                reticleVisual.transform.position = hit.point;
-                // Optional: orient the dot so it lays flat against the surface it hit
-                reticleVisual.transform.rotation = Quaternion.LookRotation(hit.normal);
-            }
-            else
-            {
-                // We are aiming into the empty sky
-                if (reticleVisual.activeSelf) reticleVisual.SetActive(false);
-            }
-        }
-    }
-
     private void OnTriggerPerformed(InputAction.CallbackContext context)
     {
         if (rayInteractor != null)
@@ -180,5 +150,35 @@ public class RightGun : MonoBehaviour
 
         // Initialize it so it anchors to the gun and starts extending
         laserScript.Initialize(spawnPoint, laserDamage, penetrate);
+    }
+
+    private void Update()
+    {
+        // Manage the laser sight / red dot position every frame
+        if (rayInteractor != null && reticleVisual != null)
+        {
+            // If the ray interactor is pointing at a UI element, hide the world-dot
+            if (rayInteractor.TryGetCurrentUIRaycastResult(out RaycastResult uiResult))
+            {
+                if (reticleVisual.activeSelf) reticleVisual.SetActive(false);
+                return;
+            }
+
+            // Check where the ray interactor is currently hitting in the 3D world
+            if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+            {
+                if (!reticleVisual.activeSelf) reticleVisual.SetActive(true);
+                
+                // Move the dot perfectly to the hit point
+                reticleVisual.transform.position = hit.point;
+                // Optional: orient the dot so it lays flat against the surface it hit
+                reticleVisual.transform.rotation = Quaternion.LookRotation(hit.normal);
+            }
+            else
+            {
+                // We are aiming into the empty sky
+                if (reticleVisual.activeSelf) reticleVisual.SetActive(false);
+            }
+        }
     }
 }
