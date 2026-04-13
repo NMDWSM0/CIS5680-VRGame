@@ -16,8 +16,18 @@ public class RightGun : MonoBehaviour
     [Tooltip("Optional: A prefab for the laser, which must have the LaserBeam script on it. If left null, one will be auto-generated.")]
     public GameObject laserPrefab;
 
+    [Tooltip("How much damage each laser shot deals to enemies.")]
+    public float laserDamage = 25f;
+
+    [Tooltip("If true, the laser pierces through enemies and hits all of them in its path.")]
+    public bool penetrate = false;
+
     [Tooltip("Optional: The point where the laser spawns. If left null, it will use this script's transform.")]
     public Transform firePoint;
+
+    [Header("Player Setup")]
+    [Tooltip("Reference to the player's status script to manage ammunition. Automatically attempts to find it if left null.")]
+    public PlayerStatus playerStatus;
 
     [Header("Reticle Setup")]
     [Tooltip("Optional: A visual object (like a red dot) to show where the gun is aiming. If null, a tiny red sphere is automatically generated.")]
@@ -25,6 +35,12 @@ public class RightGun : MonoBehaviour
 
     private void Start()
     {
+        // Try to automatically find the PlayerStatus if not manually assigned
+        if (playerStatus == null)
+        {
+            playerStatus = GetComponentInParent<PlayerStatus>();
+        }
+
         // Auto-generate a basic red dot if the user didn't assign a custom one
         if (reticleVisual == null)
         {
@@ -119,7 +135,21 @@ public class RightGun : MonoBehaviour
             Debug.LogWarning("RightGun: RayInteractor is not assigned! UI checking bypassed.");
         }
 
-        // 3. Shoot the laser
+        // 3. Check and consume ammunition
+        if (playerStatus != null)
+        {
+            if (!playerStatus.TryConsumeAmmo())
+            {
+                // We are out of ammo! The PlayerStatus script handles the Debug.Log.
+                return;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("RightGun: No PlayerStatus found! Free firing allowed.");
+        }
+
+        // 4. Shoot the laser
         ShootLaser();
     }
 
@@ -149,6 +179,6 @@ public class RightGun : MonoBehaviour
         }
 
         // Initialize it so it anchors to the gun and starts extending
-        laserScript.Initialize(spawnPoint);
+        laserScript.Initialize(spawnPoint, laserDamage, penetrate);
     }
 }

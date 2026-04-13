@@ -20,14 +20,18 @@ public class LaserBeam : MonoBehaviour
     private float currentLength = 0f;
     private float targetDistance;
     private bool isInitialized = false;
+    private float laserDamage = 0f;
+    private bool penetrate = false;
 
     /// <summary>
     /// Sets up the laser beam, tracking the anchor and auto-generating visuals if needed.
     /// </summary>
-    public void Initialize(Transform anchorPoint)
+    public void Initialize(Transform anchorPoint, float damage, bool penetrateLaser = false)
     {
         this.anchor = anchorPoint;
         this.targetDistance = maxDistance;
+        this.laserDamage = damage;
+        this.penetrate = penetrateLaser;
         
         // Auto-generate the visual cylinder if not provided
         if (visualCylinder == null)
@@ -72,24 +76,67 @@ public class LaserBeam : MonoBehaviour
             visualCylinder.localPosition = Vector3.zero;
         }
 
-        // Do a single Raycast at the start to determine what we hit
-        if (Physics.Raycast(anchor.position, anchor.forward, out RaycastHit hit, maxDistance))
+        // Fire a raycast that hits everything in its path, so we can selectively ignore bullets
+        RaycastHit[] hits = Physics.RaycastAll(anchor.position, anchor.forward, maxDistance);
+        
+        if (penetrate)
         {
-            // We hit something! Set the target distance to stop the laser visually at the hit point
-            targetDistance = hit.distance;
+            // If penetrating, the beam slices through everything up to its max distance.
+            targetDistance = maxDistance;
 
-            // Check if we hit an enemy
-            if (hit.collider.CompareTag("Enemy"))
+            foreach (RaycastHit h in hits)
             {
-                // Try to find the Enemy script on the object or its parents
-                Enemy enemyScript = hit.collider.GetComponentInParent<Enemy>();
-                if (enemyScript != null)
+                // Ignore bullets
+                if (h.collider.GetComponentInParent<EnemyBullet>() != null) continue;
+
+                // Hit all enemies in the beam
+                if (h.collider.CompareTag("Enemy"))
                 {
-                    enemyScript.Hit();
+                    Enemy enemyScript = h.collider.GetComponentInParent<Enemy>();
+                    if (enemyScript != null)
+                    {
+                        enemyScript.Hit(laserDamage);
+                    }
                 }
-                else
+            }
+        }
+        else
+        {
+            // Standard Shot logic (stops at first valid object)
+            RaycastHit nearestValidHit = new RaycastHit();
+            bool foundValidHit = false;
+            float minDistance = float.MaxValue;
+
+            foreach (RaycastHit h in hits)
+            {
+                // If the hit object is an enemy bullet, completely ignore it
+                if (h.collider.GetComponentInParent<EnemyBullet>() != null)
                 {
-                    Debug.LogWarning("Hit an object tagged 'Enemy', but no Enemy.cs script was found on it!");
+                    continue;
+                }
+
+                // Track the closest valid object we hit
+                if (h.distance < minDistance)
+                {
+                    minDistance = h.distance;
+                    nearestValidHit = h;
+                    foundValidHit = true;
+                }
+            }
+
+            if (foundValidHit)
+            {
+                // Set the visual laser to stop exactly there
+                targetDistance = nearestValidHit.distance;
+
+                // Check if we hit an enemy
+                if (nearestValidHit.collider.CompareTag("Enemy"))
+                {
+                    Enemy enemyScript = nearestValidHit.collider.GetComponentInParent<Enemy>();
+                    if (enemyScript != null)
+                    {
+                        enemyScript.Hit(laserDamage);
+                    }
                 }
             }
         }

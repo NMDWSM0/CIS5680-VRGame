@@ -9,9 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4774049490224276762}
-  - component: {fileID: 2270549965720854744}
   - component: {fileID: 2441659012626797518}
-  m_Layer: 0
+  - component: {fileID: 2270549965720854744}
+  - component: {fileID: 141195709621752994}
+  m_Layer: 7
   m_Name: TestEnemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -34,18 +35,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2270549965720854744
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6385423206836043678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf9ac7a8396ef7c4e8e63d8f9245db53, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!65 &2441659012626797518
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -59,6 +48,39 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2270549965720854744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6385423206836043678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf9ac7a8396ef7c4e8e63d8f9245db53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 100
+  healthText: {fileID: 0}
+  healthUiPosition: {x: 0, y: 1.6, z: 0}
+  generateHealthBar: 1
+--- !u!114 &141195709621752994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6385423206836043678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09d2f406ee23de74e88368c82ab8a5af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireRate: 2
+  bulletSpeed: 15
+  bulletDamage: 10
+  customBulletPrefab: {fileID: 7111184588095663160, guid: d15ef0b4a304bc248ac64361a888ab99, type: 3}
+  firePoint: {fileID: 0}
 --- !u!1 &7112743602144626442
 GameObject:
   m_ObjectHideFlags: 0
@@ -70,7 +92,7 @@ GameObject:
   - component: {fileID: 8685987555705569412}
   - component: {fileID: 1433508900582045345}
   - component: {fileID: 3437436883737252016}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
