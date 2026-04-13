@@ -19,6 +19,38 @@ public class RightGun : MonoBehaviour
     [Tooltip("Optional: The point where the laser spawns. If left null, it will use this script's transform.")]
     public Transform firePoint;
 
+    [Header("Reticle Setup")]
+    [Tooltip("Optional: A visual object (like a red dot) to show where the gun is aiming. If null, a tiny red sphere is automatically generated.")]
+    public GameObject reticleVisual;
+
+    private void Start()
+    {
+        // Auto-generate a basic red dot if the user didn't assign a custom one
+        if (reticleVisual == null)
+        {
+            reticleVisual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            
+            // Remove collider so it doesn't block physics or laser shots
+            Collider col = reticleVisual.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+
+            // Make it very small
+            reticleVisual.transform.localScale = new Vector3(0.04f, 0.04f, 0.04f);
+            
+            // Make it glow red
+            Renderer rend = reticleVisual.GetComponent<Renderer>();
+            if (rend != null)
+            {
+                rend.material.color = Color.red;
+                rend.material.EnableKeyword("_EMISSION");
+                rend.material.SetColor("_EmissionColor", Color.red * 2f);
+            }
+            
+            // Start hidden
+            reticleVisual.SetActive(false);
+        }
+    }
+
     private void OnEnable()
     {
         if (triggerAction != null && triggerAction.action != null)
@@ -33,6 +65,36 @@ public class RightGun : MonoBehaviour
         if (triggerAction != null && triggerAction.action != null)
         {
             triggerAction.action.performed -= OnTriggerPerformed;
+        }
+    }
+
+    private void Update()
+    {
+        // Manage the laser sight / red dot position every frame
+        if (rayInteractor != null && reticleVisual != null)
+        {
+            // If the ray interactor is pointing at a UI element, hide the world-dot
+            if (rayInteractor.TryGetCurrentUIRaycastResult(out RaycastResult uiResult))
+            {
+                if (reticleVisual.activeSelf) reticleVisual.SetActive(false);
+                return;
+            }
+
+            // Check where the ray interactor is currently hitting in the 3D world
+            if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+            {
+                if (!reticleVisual.activeSelf) reticleVisual.SetActive(true);
+                
+                // Move the dot perfectly to the hit point
+                reticleVisual.transform.position = hit.point;
+                // Optional: orient the dot so it lays flat against the surface it hit
+                reticleVisual.transform.rotation = Quaternion.LookRotation(hit.normal);
+            }
+            else
+            {
+                // We are aiming into the empty sky
+                if (reticleVisual.activeSelf) reticleVisual.SetActive(false);
+            }
         }
     }
 
