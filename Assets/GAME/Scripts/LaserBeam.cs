@@ -109,8 +109,12 @@ public class LaserBeam : MonoBehaviour
 
         foreach (RaycastHit h in hits)
         {
-            // Ignore bullets
-            if (h.collider.GetComponentInParent<EnemyBullet>() != null) continue;
+            // Ignore specific layers
+            string layerName = LayerMask.LayerToName(h.collider.gameObject.layer);
+            if (layerName == "UI" || layerName == "Player" || layerName == "EnemyBullet" || layerName == "PlayerBullet")
+            {
+                continue;
+            }
 
             // Hit all enemies in the beam
             if (h.collider.CompareTag("Enemy"))
@@ -133,8 +137,9 @@ public class LaserBeam : MonoBehaviour
 
         foreach (RaycastHit h in hits)
         {
-            // If the hit object is an enemy bullet, completely ignore it
-            if (h.collider.GetComponentInParent<EnemyBullet>() != null)
+            // Ignore specific layers
+            string layerName = LayerMask.LayerToName(h.collider.gameObject.layer);
+            if (layerName == "UI" || layerName == "Player" || layerName == "EnemyBullet" || layerName == "PlayerBullet")
             {
                 continue;
             }
