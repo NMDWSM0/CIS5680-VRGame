@@ -135,7 +135,7 @@ public class Enemy : MonoBehaviour
         // Update Text
         if (healthText != null)
         {
-            healthText.text = $"{clampedHealth} / {maxHealth}";
+            healthText.text = $"{clampedHealth:F1} / {maxHealth:F1}";
         }
 
         // Update Bar
