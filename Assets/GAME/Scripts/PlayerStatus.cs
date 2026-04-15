@@ -5,6 +5,9 @@ public class PlayerStatus : MonoBehaviour
     [Tooltip("The player's starting health.")]
     public float health = 100f;
 
+    [Tooltip("The player's maximum health.")]
+    public float maxHealth = 100f;
+
     [Tooltip("Current ammunition.")]
     public int ammo = 0;
 
