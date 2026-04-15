@@ -7,6 +7,10 @@ public class Enemy : MonoBehaviour
     [Tooltip("Starting health of the enemy.")]
     public float health = 100f;
 
+    [Header("Effects")]
+    [Tooltip("Particle effect to play when the enemy dies.")]
+    public GameObject deathEffectPrefab;
+
     [Header("UI Setup")]
     [Tooltip("Optional: Assign a 3D TextMeshPro object here. If left null, UI will be auto-generated.")]
     public TextMeshPro healthText;
@@ -163,6 +167,11 @@ public class Enemy : MonoBehaviour
     /// </summary>
     private void Death()
     {
+        if (deathEffectPrefab != null)
+        {
+            Instantiate(deathEffectPrefab, transform.position, transform.rotation);
+        }
+
         Debug.Log($"Enemy '{gameObject.name}' died. Destroying it...");
         Destroy(gameObject);
     }
