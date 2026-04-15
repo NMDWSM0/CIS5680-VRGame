@@ -14,34 +14,52 @@ public class EnemyBullet : MonoBehaviour
         Destroy(gameObject, lifeTime);
     }
 
+    private bool hasCollided = false;
+    private Shield hitShieldRef = null;
+    private PlayerStatus hitPlayerRef = null;
+
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the collided object is the player
-        if (other.gameObject.CompareTag("Player"))
+        hasCollided = true;
+
+        // Check if it's the Shield
+        Shield shield = other.gameObject.GetComponentInParent<Shield>();
+        if (shield != null)
         {
-            // The PlayerStatus script is likely on the root XR Origin, but the collider hit is on the Main Camera.
-            // GetComponentInParent will search the camera and traverse up safely the hierarchy to find it!
+            hitShieldRef = shield;
+        }
+        // Otherwise check if the collided object is the player
+        else if (other.gameObject.CompareTag("Player"))
+        {
+            // GetComponentInParent will search the camera and traverse up safely to find it!
             PlayerStatus player = other.gameObject.GetComponentInParent<PlayerStatus>();
             if (player != null)
             {
-                player.TakeDamage(damage);
+                hitPlayerRef = player;
             }
             else
             {
                 Debug.LogWarning("EnemyBullet hit an object tagged 'Player', but no PlayerStatus script was found on it or its parents!");
             }
         }
-        else
-        {
-            // If it's not the player, check if it's the Shield
-            Shield shield = other.gameObject.GetComponentInParent<Shield>();
-            if (shield != null)
-            {
-                shield.ProcessHit(this);
-            }
-        }
+    }
 
-        // Destroy the bullet on any collision (whether it hit a wall, shield, or player)
-        Destroy(gameObject);
+    private void LateUpdate()
+    {
+        if (hasCollided)
+        {
+            // Process the hit with priority given to the shield
+            if (hitShieldRef != null)
+            {
+                hitShieldRef.ProcessHit(this);
+            }
+            else if (hitPlayerRef != null)
+            {
+                hitPlayerRef.TakeDamage(damage);
+            }
+
+            // Destroy the bullet on any collision (whether it hit a wall, shield, or player)
+            Destroy(gameObject);
+        }
     }
 }
