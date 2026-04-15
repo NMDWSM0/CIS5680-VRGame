@@ -108,6 +108,16 @@ public class EnemyManager : MonoBehaviour
         // Calculate the angle to separate them so the arc length between them is roughly buffSpawnSpacing
         float angleSpread = (buffSpawnSpacing / buffSpawnDistance) * Mathf.Rad2Deg;
 
+        // Randomly select 3 different buffs
+        List<Buff> selectedBuffs = new List<Buff>();
+        List<Buff> allBuffs = new List<Buff>(BuffDatabase.AvailableBuffs);
+        for (int i = 0; i < 3 && allBuffs.Count > 0; i++)
+        {
+            int randomIndex = Random.Range(0, allBuffs.Count);
+            selectedBuffs.Add(allBuffs[randomIndex]);
+            allBuffs.RemoveAt(randomIndex);
+        }
+
         for (int i = 0; i < 3; i++)
         {
             // Calculate angle offset: i=0(left), i=1(center), i=2(right)
@@ -124,9 +134,9 @@ public class EnemyManager : MonoBehaviour
             activeBuffs.Add(buffObj);
             
             BuffUI buffScript = buffObj.GetComponent<BuffUI>();
-            if (buffScript != null)
+            if (buffScript != null && i < selectedBuffs.Count)
             {
-                buffScript.Initialize($"Buff_{i + 1}", $"Buff_Desc_{i + 1}", this);
+                buffScript.Initialize(selectedBuffs[i], this);
             }
         }
     }

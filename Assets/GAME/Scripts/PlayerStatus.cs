@@ -15,7 +15,7 @@ public class PlayerStatus : MonoBehaviour
     public int maxAmmo = 100;
 
     [Tooltip("Efficiency of converting absorbed damage to ammo.")]
-    public float ammoEfficiency = 0.1f;
+    public float ammoEfficiency = 1.0f;
 
     [Header("Combat Stats")]
     [Tooltip("Damage multiplier (starts at 1.0 = 100%).")]
@@ -45,9 +45,9 @@ public class PlayerStatus : MonoBehaviour
     /// </summary>
     public bool TryConsumeAmmo()
     {
-        if (ammo > 0)
+        if (ammo >= 10)
         {
-            ammo--;
+            ammo -= 10;
             return true;
         }
         Debug.Log("Out of ammo! Block bullets with the shield to recharge.");

@@ -22,8 +22,19 @@ public class RightGun : MonoBehaviour
     [Tooltip("If true, the laser pierces through enemies and hits all of them in its path.")]
     public bool penetrate = false;
 
+    [Tooltip("Damage multiplier for penetration.")]
+    public float penetrationDamage = 0.0f;
+
+    [Tooltip("Time between shots in seconds.")]
+    public float fireRate = 1.0f;
+
+    [Tooltip("Minimum time between shots in seconds.")]
+    public float minFireRate = 0.2f;
+
     [Tooltip("Optional: The point where the laser spawns. If left null, it will use this script's transform.")]
     public Transform firePoint;
+
+    private float lastFireTime = -9999f;
 
     [Header("Player Setup")]
     [Tooltip("Reference to the player's status script to manage ammunition. Automatically attempts to find it if left null.")]
@@ -86,6 +97,11 @@ public class RightGun : MonoBehaviour
 
     private void OnTriggerPerformed(InputAction.CallbackContext context)
     {
+        if (Time.time - lastFireTime < fireRate)
+        {
+            return; // Still cooling down
+        }
+
         if (rayInteractor != null)
         {
             // 1. Check if we are hovering over any UI Canvas Element
@@ -121,6 +137,9 @@ public class RightGun : MonoBehaviour
 
         // 4. Shoot the laser
         ShootLaser();
+        
+        // 5. Update last fire time
+        lastFireTime = Time.time;
     }
 
     private void ShootLaser()
@@ -152,7 +171,7 @@ public class RightGun : MonoBehaviour
         float finalDamage = CalculateFinalDamage();
 
         // Initialize it so it anchors to the gun and starts extending
-        laserScript.Initialize(spawnPoint, finalDamage, penetrate, playerStatus);
+        laserScript.Initialize(spawnPoint, finalDamage, penetrate, playerStatus, penetrationDamage);
     }
 
     /// <summary>

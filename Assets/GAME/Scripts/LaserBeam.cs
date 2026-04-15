@@ -23,17 +23,19 @@ public class LaserBeam : MonoBehaviour
     private float laserDamage = 0f;
     private bool penetrate = false;
     private PlayerStatus playerStatus = null;
+    private float penetrationDamageMulti = 0f;
 
     /// <summary>
     /// Sets up the laser beam, tracking the anchor and auto-generating visuals if needed.
     /// </summary>
-    public void Initialize(Transform anchorPoint, float damage, bool penetrateLaser = false, PlayerStatus status = null)
+    public void Initialize(Transform anchorPoint, float damage, bool penetrateLaser = false, PlayerStatus status = null, float penDamageMulti = 0f)
     {
         this.anchor = anchorPoint;
         this.targetDistance = maxDistance;
         this.laserDamage = damage;
         this.penetrate = penetrateLaser;
         this.playerStatus = status;
+        this.penetrationDamageMulti = penDamageMulti;
         
         SetupVisuals();
         ProcessRaycastHits();
@@ -109,11 +111,16 @@ public class LaserBeam : MonoBehaviour
         // If penetrating, the beam slices through everything up to its max distance.
         targetDistance = maxDistance;
 
+        // Sort hits by distance to know which enemy is hit first
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        bool hitFirstEnemy = false;
+
         foreach (RaycastHit h in hits)
         {
             // Ignore specific layers
             string layerName = LayerMask.LayerToName(h.collider.gameObject.layer);
-            if (layerName == "UI" || layerName == "Player" || layerName == "EnemyBullet" || layerName == "PlayerBullet")
+            if (layerName == "UI" || layerName == "Player" || layerName == "EnemyBullet" || layerName == "PlayerBullet" || layerName == "Shield")
             {
                 continue;
             }
@@ -124,7 +131,11 @@ public class LaserBeam : MonoBehaviour
                 Enemy enemyScript = h.collider.GetComponentInParent<Enemy>();
                 if (enemyScript != null)
                 {
-                    float realDamage = enemyScript.Hit(laserDamage);
+                    // Deal full damage to the closest enemy, penetrationDamage percentage to others
+                    float dmg = hitFirstEnemy ? (laserDamage * penetrationDamageMulti) : laserDamage;
+                    float realDamage = enemyScript.Hit(dmg);
+                    hitFirstEnemy = true;
+
                     if (playerStatus != null)
                     {
                         playerStatus.OnDamageDealt(realDamage);
@@ -145,7 +156,7 @@ public class LaserBeam : MonoBehaviour
         {
             // Ignore specific layers
             string layerName = LayerMask.LayerToName(h.collider.gameObject.layer);
-            if (layerName == "UI" || layerName == "Player" || layerName == "EnemyBullet" || layerName == "PlayerBullet")
+            if (layerName == "UI" || layerName == "Player" || layerName == "EnemyBullet" || layerName == "PlayerBullet" || layerName == "Shield")
             {
                 continue;
             }
