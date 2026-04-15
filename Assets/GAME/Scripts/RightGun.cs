@@ -148,8 +148,34 @@ public class RightGun : MonoBehaviour
             laserScript = laserObj.AddComponent<LaserBeam>();
         }
 
+        // Calculate dynamic damage applying multipliers and crit
+        float finalDamage = CalculateFinalDamage();
+
         // Initialize it so it anchors to the gun and starts extending
-        laserScript.Initialize(spawnPoint, laserDamage, penetrate);
+        laserScript.Initialize(spawnPoint, finalDamage, penetrate, playerStatus);
+    }
+
+    /// <summary>
+    /// Computes damage using PlayerStatus modifiers like damageMultiplier and critRate.
+    /// </summary>
+    private float CalculateFinalDamage()
+    {
+        float damage = laserDamage;
+        
+        if (playerStatus != null)
+        {
+            // Apply straight multiplier
+            damage *= playerStatus.damageMultiplier;
+            
+            // Apply critical hit (critRate is 0 to 1)
+            if (Random.value < playerStatus.critRate)
+            {
+                damage *= 2.0f; // Standard 2x crit multiplier
+                Debug.Log($"Critical Hit! Damage modified to {damage}");
+            }
+        }
+        
+        return damage;
     }
 
     private void Update()

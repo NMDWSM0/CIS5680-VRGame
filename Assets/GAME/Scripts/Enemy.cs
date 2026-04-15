@@ -101,10 +101,15 @@ public class Enemy : MonoBehaviour
     /// <summary>
     /// Called when the laser hits this enemy.
     /// </summary>
-    public void Hit(float damage)
+    public float Hit(float damage)
     {
+        float prevHealth = health;
+
+        // Future-proofing: defense calculations will modify realDamage here
         health -= damage;
-        Debug.Log($"Enemy '{gameObject.name}' took {damage} damage! Remaining health: {health}");
+
+        float realDamage = Mathf.Max(prevHealth - health, 0);
+        Debug.Log($"Enemy '{gameObject.name}' took {realDamage} damage! Remaining health: {health}");
 
         UpdateHealthUI();
 
@@ -112,6 +117,8 @@ public class Enemy : MonoBehaviour
         {
             Death();
         }
+        
+        return realDamage;
     }
 
     /// <summary>

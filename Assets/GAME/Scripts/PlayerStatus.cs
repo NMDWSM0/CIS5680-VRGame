@@ -17,6 +17,16 @@ public class PlayerStatus : MonoBehaviour
     [Tooltip("Efficiency of converting absorbed damage to ammo.")]
     public float ammoEfficiency = 0.1f;
 
+    [Header("Combat Stats")]
+    [Tooltip("Damage multiplier (starts at 1.0 = 100%).")]
+    public float damageMultiplier = 1.0f;
+
+    [Tooltip("Critical hit chance (starts at 0.0 = 0%).")]
+    public float critRate = 0f;
+
+    [Tooltip("Percentage of damage dealt gained as health (starts at 0.0 = 0%).")]
+    public float lifeSteal = 0f;
+
     /// <summary>
     /// Called when the player's shield absorbs incoming damage.
     /// Converts that absorbed damage into ammunition!
@@ -57,6 +67,27 @@ public class PlayerStatus : MonoBehaviour
         if (health <= 0)
         {
             Die();
+        }
+    }
+
+    /// <summary>
+    /// Heals the player by a specified amount.
+    /// </summary>
+    public void Heal(float amount)
+    {
+        health = Mathf.Clamp(health + amount, 0, maxHealth);
+        Debug.Log($"Player healed {amount}! Current health: {health}");
+    }
+
+    /// <summary>
+    /// Called when the player deals damage to an enemy to trigger health gain.
+    /// </summary>
+    public void OnDamageDealt(float damageDealt)
+    {
+        if (lifeSteal > 0)
+        {
+            float healAmount = damageDealt * lifeSteal;
+            Heal(healAmount);
         }
     }
 

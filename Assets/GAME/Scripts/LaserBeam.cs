@@ -22,16 +22,18 @@ public class LaserBeam : MonoBehaviour
     private bool isInitialized = false;
     private float laserDamage = 0f;
     private bool penetrate = false;
+    private PlayerStatus playerStatus = null;
 
     /// <summary>
     /// Sets up the laser beam, tracking the anchor and auto-generating visuals if needed.
     /// </summary>
-    public void Initialize(Transform anchorPoint, float damage, bool penetrateLaser = false)
+    public void Initialize(Transform anchorPoint, float damage, bool penetrateLaser = false, PlayerStatus status = null)
     {
         this.anchor = anchorPoint;
         this.targetDistance = maxDistance;
         this.laserDamage = damage;
         this.penetrate = penetrateLaser;
+        this.playerStatus = status;
         
         SetupVisuals();
         ProcessRaycastHits();
@@ -122,7 +124,11 @@ public class LaserBeam : MonoBehaviour
                 Enemy enemyScript = h.collider.GetComponentInParent<Enemy>();
                 if (enemyScript != null)
                 {
-                    enemyScript.Hit(laserDamage);
+                    float realDamage = enemyScript.Hit(laserDamage);
+                    if (playerStatus != null)
+                    {
+                        playerStatus.OnDamageDealt(realDamage);
+                    }
                 }
             }
         }
@@ -164,7 +170,11 @@ public class LaserBeam : MonoBehaviour
                 Enemy enemyScript = nearestValidHit.collider.GetComponentInParent<Enemy>();
                 if (enemyScript != null)
                 {
-                    enemyScript.Hit(laserDamage);
+                    float realDamage = enemyScript.Hit(laserDamage);
+                    if (playerStatus != null)
+                    {
+                        playerStatus.OnDamageDealt(realDamage);
+                    }
                 }
             }
         }
