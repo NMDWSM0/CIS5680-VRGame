@@ -63,6 +63,15 @@ public class EnemyManager : MonoBehaviour
                 SpawnBuffs();
             }
         }
+
+        if (activeEnemies.Count == 0 && currentWave == maxWaves && !isWaitingForBuff)
+        {
+            PlayerStatus playerStatus = FindObjectOfType<PlayerStatus>();
+            if (playerStatus != null && !playerStatus.isGameOver)
+            {
+                playerStatus.Win();
+            }
+        }
     }
 
     private void SpawnNextWave()
