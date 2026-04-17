@@ -19,7 +19,7 @@ public class PlayerBullet : MonoBehaviour
         // Check if the collided object is an enemy body or gun
         if (other.gameObject.CompareTag("Enemy") || other.gameObject.CompareTag("Gun"))
         {
-            Enemy enemy = other.gameObject.GetComponentInParent<Enemy>();
+            IEnemy enemy = other.gameObject.GetComponentInParent<IEnemy>();
             if (enemy != null)
             {
                 enemy.Hit(damage, other.gameObject);

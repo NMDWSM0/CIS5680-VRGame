@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, IEnemy
 {
     [Header("Stats")]
     [Tooltip("Starting health of the enemy.")]

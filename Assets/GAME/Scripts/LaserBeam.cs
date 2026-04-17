@@ -128,7 +128,7 @@ public class LaserBeam : MonoBehaviour
             // Hit all enemies/guns in the beam
             if (h.collider.CompareTag("Enemy") || h.collider.CompareTag("Gun"))
             {
-                Enemy enemyScript = h.collider.GetComponentInParent<Enemy>();
+                IEnemy enemyScript = h.collider.GetComponentInParent<IEnemy>();
                 if (enemyScript != null)
                 {
                     // Deal full damage to the closest enemy, penetrationDamage percentage to others
@@ -178,7 +178,7 @@ public class LaserBeam : MonoBehaviour
             // Check if we hit an enemy body or gun
             if (nearestValidHit.collider.CompareTag("Enemy") || nearestValidHit.collider.CompareTag("Gun"))
             {
-                Enemy enemyScript = nearestValidHit.collider.GetComponentInParent<Enemy>();
+                IEnemy enemyScript = nearestValidHit.collider.GetComponentInParent<IEnemy>();
                 if (enemyScript != null)
                 {
                     float realDamage = enemyScript.Hit(laserDamage, nearestValidHit.collider.gameObject);
