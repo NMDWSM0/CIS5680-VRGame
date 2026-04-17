@@ -194,7 +194,7 @@ public class RightGun : MonoBehaviour
         }
 
         // Trigger vibration
-        ControllerVibration.VibrateRight(0.5f, 0.1f);
+        ControllerVibration.VibrateRight(0.9f, 0.03f);
     }
 
     /// <summary>

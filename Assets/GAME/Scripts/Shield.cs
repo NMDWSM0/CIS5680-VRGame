@@ -33,7 +33,7 @@ public class Shield : MonoBehaviour
         }
 
         // Trigger vibration
-        ControllerVibration.VibrateLeft(0.5f, 0.1f);
+        ControllerVibration.VibrateLeft(0.6f, 0.05f);
     }
 
     /// <summary>

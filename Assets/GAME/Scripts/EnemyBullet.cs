@@ -22,6 +22,8 @@ public class EnemyBullet : MonoBehaviour
     {
         hasCollided = true;
 
+        var playerParent = other.transform.parent.parent;
+
         // Check if it's the Shield
         Shield shield = other.gameObject.GetComponentInParent<Shield>();
         if (shield != null)
@@ -29,10 +31,10 @@ public class EnemyBullet : MonoBehaviour
             hitShieldRef = shield;
         }
         // Otherwise check if the collided object is the player
-        else if (other.gameObject.CompareTag("Player"))
+        else if (playerParent.gameObject.CompareTag("Player"))
         {
             // GetComponentInParent will search the camera and traverse up safely to find it!
-            PlayerStatus player = other.gameObject.GetComponentInParent<PlayerStatus>();
+            PlayerStatus player = playerParent.gameObject.GetComponentInParent<PlayerStatus>();
             if (player != null)
             {
                 hitPlayerRef = player;
