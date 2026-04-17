@@ -75,16 +75,30 @@ public class EnemyShooter : MonoBehaviour
 
     private void ShootAtPlayer()
     {
-        // Play shooting sound if audio source is assigned
-        if (audioSource != null)
+        // 1. Filter out fire points that have been detached (no longer children of this enemy)
+        Transform[] allPoints = firePoints != null && firePoints.Length > 0 ? firePoints : new Transform[] { transform };
+        
+        System.Collections.Generic.List<Transform> activePoints = new System.Collections.Generic.List<Transform>();
+        foreach (Transform p in allPoints)
         {
-            audioSource.Play();
+            // If the point is null or no longer a child of this object/root, skip it
+            if (p != null && (p == transform || p.IsChildOf(this.transform)))
+            {
+                activePoints.Add(p);
+            }
         }
 
-        // Get all fire points, use transform as fallback if none assigned
-        Transform[] spawnPoints = firePoints != null && firePoints.Length > 0 ? firePoints : new Transform[] { transform };
+        // If no weapons left, don't fire or play sound
+        if (activePoints.Count == 0) return;
 
-        foreach (Transform spawnPoint in spawnPoints)
+        // 2. Play shooting sound (using PlayClipAtPoint to ensure it plays at world position)
+        if (audioSource != null && audioSource.clip != null)
+        {
+            AudioSource.PlayClipAtPoint(audioSource.clip, transform.position, audioSource.volume);
+        }
+
+        // 3. Fire from all active points
+        foreach (Transform spawnPoint in activePoints)
         {
             // Calculate direction to the player's head securely
             Vector3 directionToPlayer = (playerHead.position - spawnPoint.position).normalized;
@@ -124,9 +138,7 @@ public class EnemyShooter : MonoBehaviour
             if (rb == null)
             {
                 rb = bullet.AddComponent<Rigidbody>();
-                rb.useGravity = false; // Bullets fly straight without dropping like stones
-
-                // Continuous collision prevents fast bullets from aggressively clipping clean through thin walls before unity detects them!
+                rb.useGravity = false; 
                 rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
             }
 

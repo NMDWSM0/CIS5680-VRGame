@@ -16,17 +16,17 @@ public class PlayerBullet : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the collided object is an enemy
-        if (other.gameObject.CompareTag("Enemy"))
+        // Check if the collided object is an enemy body or gun
+        if (other.gameObject.CompareTag("Enemy") || other.gameObject.CompareTag("Gun"))
         {
             Enemy enemy = other.gameObject.GetComponentInParent<Enemy>();
             if (enemy != null)
             {
-                enemy.Hit(damage);
+                enemy.Hit(damage, other.gameObject);
             }
             else
             {
-                Debug.LogWarning("PlayerBullet hit an object tagged 'Enemy', but no Enemy script was found on it or its parents!");
+                Debug.LogWarning("PlayerBullet hit an object tagged 'Enemy' or 'Gun', but no Enemy script was found on it or its parents!");
             }
         }
 

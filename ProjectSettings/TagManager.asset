@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Anchor
   - Enemy
+  - Gun
   layers:
   - Default
   - TransparentFX

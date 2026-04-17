@@ -125,15 +125,15 @@ public class LaserBeam : MonoBehaviour
                 continue;
             }
 
-            // Hit all enemies in the beam
-            if (h.collider.CompareTag("Enemy"))
+            // Hit all enemies/guns in the beam
+            if (h.collider.CompareTag("Enemy") || h.collider.CompareTag("Gun"))
             {
                 Enemy enemyScript = h.collider.GetComponentInParent<Enemy>();
                 if (enemyScript != null)
                 {
                     // Deal full damage to the closest enemy, penetrationDamage percentage to others
                     float dmg = hitFirstEnemy ? (laserDamage * penetrationDamageMulti) : laserDamage;
-                    float realDamage = enemyScript.Hit(dmg);
+                    float realDamage = enemyScript.Hit(dmg, h.collider.gameObject);
                     hitFirstEnemy = true;
 
                     if (playerStatus != null)
@@ -175,13 +175,13 @@ public class LaserBeam : MonoBehaviour
             // Set the visual laser to stop exactly there
             targetDistance = nearestValidHit.distance;
 
-            // Check if we hit an enemy
-            if (nearestValidHit.collider.CompareTag("Enemy"))
+            // Check if we hit an enemy body or gun
+            if (nearestValidHit.collider.CompareTag("Enemy") || nearestValidHit.collider.CompareTag("Gun"))
             {
                 Enemy enemyScript = nearestValidHit.collider.GetComponentInParent<Enemy>();
                 if (enemyScript != null)
                 {
-                    float realDamage = enemyScript.Hit(laserDamage);
+                    float realDamage = enemyScript.Hit(laserDamage, nearestValidHit.collider.gameObject);
                     if (playerStatus != null)
                     {
                         playerStatus.OnDamageDealt(realDamage);
