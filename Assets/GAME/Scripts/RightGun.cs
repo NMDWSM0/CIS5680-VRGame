@@ -44,8 +44,22 @@ public class RightGun : MonoBehaviour
     [Tooltip("Optional: A visual object (like a red dot) to show where the gun is aiming. If null, a tiny red sphere is automatically generated.")]
     public GameObject reticleVisual;
 
+    [Header("Audio Setup")]
+    [Tooltip("Sound to play when shooting.")]
+    public AudioClip shootSound;
+
+    private AudioSource audioSource;
+
     private void Start()
     {
+        // Setup AudioSource
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
+
         // Try to automatically find the PlayerStatus if not manually assigned
         if (playerStatus == null)
         {
@@ -172,6 +186,15 @@ public class RightGun : MonoBehaviour
 
         // Initialize it so it anchors to the gun and starts extending
         laserScript.Initialize(spawnPoint, finalDamage, penetrate, playerStatus, penetrationDamage);
+
+        // Play shoot audio
+        if (shootSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(shootSound);
+        }
+
+        // Trigger vibration
+        ControllerVibration.VibrateRight(0.5f, 0.1f);
     }
 
     /// <summary>

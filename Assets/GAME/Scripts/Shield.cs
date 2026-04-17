@@ -31,6 +31,9 @@ public class Shield : MonoBehaviour
             // Fallback if no PlayerStatus is found
             Absorb(bullet.damage);
         }
+
+        // Trigger vibration
+        ControllerVibration.VibrateLeft(0.5f, 0.1f);
     }
 
     /// <summary>

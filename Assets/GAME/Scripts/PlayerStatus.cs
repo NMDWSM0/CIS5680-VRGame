@@ -71,6 +71,10 @@ public class PlayerStatus : MonoBehaviour
         health -= damage;
         Debug.Log($"Player took {damage} damage! Remaining health: {health}");
 
+        // Trigger vibration
+        ControllerVibration.VibrateLeft(1.0f, 0.5f);
+        ControllerVibration.VibrateRight(1.0f, 0.5f);
+
         // Example logic for updating a UI on your screen, playing a damage grunt sound, etc., can go here!
 
         if (health <= 0)
