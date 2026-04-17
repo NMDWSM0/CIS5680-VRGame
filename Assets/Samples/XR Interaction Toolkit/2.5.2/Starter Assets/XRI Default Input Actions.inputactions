@@ -367,7 +367,7 @@
                     "name": "Haptic Device",
                     "type": "PassThrough",
                     "id": "664a62b0-e178-421d-b3f8-014eec01591d",
-                    "expectedControlType": "",
+                    "expectedControlType": "Haptic",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -537,7 +537,7 @@
                 {
                     "name": "",
                     "id": "acdf9550-5529-4ff7-8558-73ecdf0d75bd",
-                    "path": "<XRController>{LeftHand}/*",
+                    "path": "<XRController>{LeftHand}/haptic",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",
@@ -1163,7 +1163,7 @@
                     "name": "Haptic Device",
                     "type": "PassThrough",
                     "id": "57b2a1b4-3290-46d6-ac07-4854ee8f91b1",
-                    "expectedControlType": "",
+                    "expectedControlType": "Haptic",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -1333,7 +1333,7 @@
                 {
                     "name": "",
                     "id": "6011e1e6-b2dd-4cb1-8da5-29b03868f2c5",
-                    "path": "<XRController>{RightHand}/*",
+                    "path": "<XRController>{RightHand}/haptic",
                     "interactions": "",
                     "processors": "",
                     "groups": "Generic XR Controller",

@@ -39,7 +39,7 @@ public class ControllerVibration : MonoBehaviour
     /// <param name="isLeft">True to vibrate the left controller, false for the right.</param>
     /// <param name="amplitude">The intensity of the vibration (typically 0.0 to 1.0).</param>
     /// <param name="duration">The duration in seconds.</param>
-    public static void Vibrate(bool isLeft, float amplitude, float duration)
+    public static void Vibrate(bool isLeft, float amplitude, float duration, float frequency)
     {
         if (instance == null)
         {
@@ -47,13 +47,57 @@ public class ControllerVibration : MonoBehaviour
             return;
         }
 
-        if (isLeft && instance.leftController != null)
+        XRBaseController controller = isLeft ? instance.leftController : instance.rightController;
+        if (controller != null)
         {
-            instance.leftController.SendHapticImpulse(amplitude, duration);
-        }
-        else if (!isLeft && instance.rightController != null)
-        {
-            instance.rightController.SendHapticImpulse(amplitude, duration);
+            // If the controller is ActionBased and we want to use OpenXR's frequency
+            if (frequency > 0f && controller is ActionBasedController actionController)
+            {
+                var action = actionController.hapticDeviceAction.action;
+                if (action != null)
+                {
+                    // Safe reflection to use OpenXR's haptics without hardcoding the dependency
+                    var openXRInputType = System.Type.GetType("UnityEngine.XR.OpenXR.Input.OpenXRInput, Unity.XR.OpenXR");
+                    if (openXRInputType != null)
+                    {
+                        var method = openXRInputType.GetMethod("SendHapticImpulse", 
+                            new System.Type[] { typeof(UnityEngine.InputSystem.InputAction), typeof(float), typeof(float), typeof(float), typeof(UnityEngine.InputSystem.InputDevice) });
+                        if (method != null)
+                        {
+                            try
+                            {
+                                UnityEngine.InputSystem.InputDevice inputDevice = null;
+                                if (action.controls.Count > 0)
+                                {
+                                    inputDevice = action.controls[0].device;
+                                }
+
+                                method.Invoke(null, new object[] { action, amplitude, frequency, duration, inputDevice });
+                                return; // Successfully sent OpenXR haptic
+                            }
+                            catch (System.Exception e)
+                            {
+                                Debug.LogWarning("ControllerVibration: OpenXR send failed, falling back. Error: " + e.Message);
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogWarning("ControllerVibration: SendHapticImpulse method not found! Using standard fallback.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("ControllerVibration: OpenXRInput type not found! Using standard fallback.");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("ControllerVibration: Haptic action not found! Using standard fallback.");
+                }
+            }
+            
+            // Standard fallback without frequency control
+            controller.SendHapticImpulse(amplitude, duration);
         }
         else
         {
@@ -64,16 +108,16 @@ public class ControllerVibration : MonoBehaviour
     /// <summary>
     /// Triggers a haptic impulse on the left controller.
     /// </summary>
-    public static void VibrateLeft(float amplitude, float duration)
+    public static void VibrateLeft(float amplitude, float duration, float frequency = 200.0f)
     {
-        Vibrate(true, amplitude, duration);
+        Vibrate(true, amplitude, duration, frequency);
     }
 
     /// <summary>
     /// Triggers a haptic impulse on the right controller.
     /// </summary>
-    public static void VibrateRight(float amplitude, float duration)
+    public static void VibrateRight(float amplitude, float duration, float frequency = 200.0f)
     {
-        Vibrate(false, amplitude, duration);
+        Vibrate(false, amplitude, duration, frequency);
     }
 }
