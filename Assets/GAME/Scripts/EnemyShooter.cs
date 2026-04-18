@@ -13,6 +13,9 @@ public class EnemyShooter : MonoBehaviour
     [Tooltip("Time between bursts (间歇时间).")]
     public float restInterval = 2f;
 
+    [Tooltip("Random range added to restInterval (随机范围).")]
+    public float restIntervalRandom = 0.0f;
+
     [Tooltip("The speed of the bullet.")]
     public float bulletSpeed = 15f;
 
@@ -51,7 +54,7 @@ public class EnemyShooter : MonoBehaviour
         isShooting = true;
         
         // Wait a slight random offset so multiple enemies don't fire on the exact same frame
-        yield return new WaitForSeconds(Random.Range(0f, restInterval));
+        yield return new WaitForSeconds(0.5f * restInterval + Random.Range(0f, restInterval));
 
         while (true)
         {
@@ -69,7 +72,7 @@ public class EnemyShooter : MonoBehaviour
                 }
             }
             // Wait for the rest interval before starting the next burst
-            yield return new WaitForSeconds(restInterval);
+            yield return new WaitForSeconds(restInterval + Random.Range(0f, restIntervalRandom));
         }
     }
 

@@ -4,26 +4,24 @@ using UnityEngine;
 
 public class EnemyManager : MonoBehaviour
 {
-    [Header("Wave Settings")]
-    public int maxWaves = 10;
-    public int enemiesPerWave = 3;
-
     [Header("Enemy Prefabs")]
     [Tooltip("Add enemy prefabs here. A random one will be chosen for each spawn.")]
     public GameObject[] enemyPrefabs;
 
-    [Header("Spawn Location")]
-    [Tooltip("The center point where enemies will spawn in the XZ plane.")]
-    public Vector2 spawnCenterXZ = new Vector2(6f, -6f);
-    
-    [Tooltip("The fixed Y height for spawning enemies.")]
-    public float spawnHeightY = 2f;
-    
-    [Tooltip("Radius around the given XZ center to randomly place the enemy so they don't overlap.")]
-    public float spawnRadius = 2f;
-
     private int currentWave = 0;
-    private List<GameObject> activeEnemies = new List<GameObject>();
+    
+    private class ActiveGroupState
+    {
+        public EnemySpawnConfig config;
+        public int totalSpawned = 0;
+        public List<GameObject> aliveEnemies = new List<GameObject>();
+        
+        public bool IsFullySpawned => totalSpawned >= config.count;
+        public bool IsCleared => IsFullySpawned && aliveEnemies.Count == 0;
+    }
+
+    private List<ActiveGroupState> activeGroups = new List<ActiveGroupState>();
+    private bool isWaveActive = false;
 
     [Header("Buff Settings")]
     [Tooltip("The UI prefab to generate 3 choices of buffs.")]
@@ -35,64 +33,163 @@ public class EnemyManager : MonoBehaviour
 
     private bool isWaitingForBuff = false;
     private List<GameObject> activeBuffs = new List<GameObject>();
+    private int remainingBuffsToChoose = 0;
 
     void Update()
     {
-        // Don't do anything if we haven't assigned any prefabs in the inspector
-        if (enemyPrefabs == null || enemyPrefabs.Length == 0)
+        if (enemyPrefabs == null || enemyPrefabs.Length == 0) return;
+
+        if (isWaveActive)
         {
-            return;
+            bool allCleared = true;
+
+            foreach (var groupState in activeGroups)
+            {
+                // Clean up dead enemies
+                groupState.aliveEnemies.RemoveAll(enemy => enemy == null);
+
+                // Spawn more if under max on stage limit and haven't spawned total count
+                while (groupState.aliveEnemies.Count < groupState.config.maxOnStage && !groupState.IsFullySpawned)
+                {
+                    SpawnEnemyForGroup(groupState);
+                }
+
+                if (!groupState.IsCleared)
+                {
+                    allCleared = false;
+                }
+            }
+
+            if (allCleared)
+            {
+                // Wave is finished!
+                isWaveActive = false;
+                activeGroups.Clear();
+                
+                int finishedWaveIndex = currentWave - 1;
+                if (finishedWaveIndex >= 0 && finishedWaveIndex < WaveData.Waves.Count)
+                {
+                    remainingBuffsToChoose = WaveData.Waves[finishedWaveIndex].buffsToChoose;
+                }
+                
+                if (currentWave < WaveData.Waves.Count && !isWaitingForBuff)
+                {
+                    if (remainingBuffsToChoose > 0)
+                    {
+                        SpawnBuffs();
+                    }
+                    else
+                    {
+                        SpawnNextWave();
+                    }
+                }
+                else if (currentWave == WaveData.Waves.Count && !isWaitingForBuff)
+                {
+                    PlayerStatus playerStatus = FindObjectOfType<PlayerStatus>();
+                    if (playerStatus != null && !playerStatus.isGameOver)
+                    {
+                        playerStatus.Win();
+                    }
+                }
+            }
         }
-
-        // Unity automatically sets destroyed objects to null in C# collections if we check them.
-        // We can clean up the list by removing all null references (enemies that were killed/destroyed).
-        activeEnemies.RemoveAll(enemy => enemy == null);
-
-        // If the list is empty, all enemies in the current wave are dead.
-        // Proceed to generate the next wave, but give buffs first.
-        if (activeEnemies.Count == 0 && currentWave < maxWaves && !isWaitingForBuff)
+        else if (currentWave == 0 && !isWaitingForBuff)
         {
-            if (currentWave == 0)
-            {
-                // First wave starts immediately without buffs
-                SpawnNextWave();
-            }
-            else
-            {
-                // After each wave finishes, generate buffs
-                SpawnBuffs();
-            }
-        }
-
-        if (activeEnemies.Count == 0 && currentWave == maxWaves && !isWaitingForBuff)
-        {
-            PlayerStatus playerStatus = FindObjectOfType<PlayerStatus>();
-            if (playerStatus != null && !playerStatus.isGameOver)
-            {
-                playerStatus.Win();
-            }
+            // Start the very first wave automatically
+            SpawnNextWave();
         }
     }
 
     private void SpawnNextWave()
     {
+        if (currentWave >= WaveData.Waves.Count) return;
+
+        WaveConfig config = WaveData.Waves[currentWave];
         currentWave++;
-        Debug.Log($"Spawning Wave {currentWave} of {maxWaves}...");
+        Debug.Log($"Starting Wave {currentWave} of {WaveData.Waves.Count}...");
 
-        for (int i = 0; i < enemiesPerWave; i++)
+        activeGroups.Clear();
+        foreach (var group in config.enemyGroups)
         {
-            // Pick a fully random enemy prefab from the array
-            GameObject selectedPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
-
-            // Calculate a random position around (6, 0, -6) in the XZ plane, mapped to a Y of 2.
-            float randomX = spawnCenterXZ.x + Random.Range(-spawnRadius, spawnRadius);
-            float randomZ = spawnCenterXZ.y + Random.Range(-spawnRadius, spawnRadius);
-            Vector3 spawnPosition = new Vector3(randomX, spawnHeightY, randomZ);
-
-            // Instantiate and add to our tracking list
-            GameObject spawnedEnemy = Instantiate(selectedPrefab, spawnPosition, Quaternion.identity);
-            activeEnemies.Add(spawnedEnemy);
+            activeGroups.Add(new ActiveGroupState { config = group });
         }
+        
+        isWaveActive = true;
+    }
+
+    private void SpawnEnemyForGroup(ActiveGroupState groupState)
+    {
+        var group = groupState.config;
+        if (group.enemyTypeId < 0 || group.enemyTypeId >= enemyPrefabs.Length)
+        {
+            Debug.LogWarning($"Invalid enemyTypeId {group.enemyTypeId} in WaveData for Wave {currentWave}.");
+            groupState.totalSpawned++; // Count it as spawned so we don't infinitely retry
+            return;
+        }
+
+        GameObject prefabToSpawn = enemyPrefabs[group.enemyTypeId];
+        Transform playerTransform = Camera.main != null ? Camera.main.transform : transform;
+        Vector3 spawnPosition = Vector3.zero;
+
+        if (group.spawnPositionType == SpawnPositionType.Fixed)
+        {
+            spawnPosition = group.fixedPosition;
+            // Add slight random offset to prevent enemies from stacking exactly on each other
+            spawnPosition.x += Random.Range(-group.fixedSpawnRadius, group.fixedSpawnRadius);
+            spawnPosition.z += Random.Range(-group.fixedSpawnRadius, group.fixedSpawnRadius);
+        }
+        else
+        {
+            // Calculate relative to player
+            Vector3 playerPos = playerTransform.position;
+            Vector3 playerForward = playerTransform.forward;
+            playerForward.y = 0;
+            if (playerForward.sqrMagnitude < 0.01f) playerForward = playerTransform.up;
+            playerForward.Normalize();
+
+            float distance = Random.Range(group.spawnDistanceMin, group.spawnDistanceMax);
+
+            if (group.spawnPositionType == SpawnPositionType.InFrontOfPlayer)
+            {
+                spawnPosition = playerPos + playerForward * distance;
+            }
+            else if (group.spawnPositionType == SpawnPositionType.RandomArc)
+            {
+                // Random arc inside [-range/2, range/2]
+                float halfAngle = group.arcAngleRange / 2f;
+                float randomAngle = Random.Range(-halfAngle, halfAngle);
+                
+                Vector3 rotatedForward = Quaternion.Euler(0, randomAngle, 0) * playerForward;
+                spawnPosition = playerPos + rotatedForward * distance;
+            }
+            
+            // Set default Y height for relative spawns
+            spawnPosition.y = group.fixedPosition.y;
+        }
+
+        GameObject spawnedEnemy = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
+
+        // Apply Modifiers
+        Enemy enemyScript = spawnedEnemy.GetComponentInChildren<Enemy>();
+        if (enemyScript != null)
+        {
+            enemyScript.health *= group.hpMultiplier;
+        }
+
+        EnemyShooter shooterScript = spawnedEnemy.GetComponentInChildren<EnemyShooter>();
+        if (shooterScript != null)
+        {
+            shooterScript.bulletDamage *= group.atkMultiplier;
+        }
+
+        SuicideDrone droneScript = spawnedEnemy.GetComponentInChildren<SuicideDrone>();
+        if (droneScript != null)
+        {
+            droneScript.impactDamage *= group.atkMultiplier;
+        }
+
+        groupState.aliveEnemies.Add(spawnedEnemy);
+        groupState.totalSpawned++;
     }
 
     private void SpawnBuffs()
@@ -162,7 +259,19 @@ public class EnemyManager : MonoBehaviour
         activeBuffs.Clear();
         isWaitingForBuff = false;
         
-        // Buff picked, move directly to next wave
-        SpawnNextWave();
+        remainingBuffsToChoose--;
+
+        if (remainingBuffsToChoose > 0)
+        {
+            SpawnBuffs();
+        }
+        else
+        {
+            // Buff picking finished, move directly to next wave if not at max
+            if (currentWave < WaveData.Waves.Count)
+            {
+                SpawnNextWave();
+            }
+        }
     }
 }

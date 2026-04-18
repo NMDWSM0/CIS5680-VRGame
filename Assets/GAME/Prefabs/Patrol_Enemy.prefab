@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5780355177208931123}
   - component: {fileID: 5960088190812720059}
   - component: {fileID: 2897929612824144390}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.009
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 882503078407893815}
   - component: {fileID: 4292102288735992978}
   - component: {fileID: 2050381392762570840}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mechbot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -188,7 +188,7 @@ GameObject:
   - component: {fileID: 586812485981830045}
   - component: {fileID: 4668156431535410699}
   - component: {fileID: 648742539106400544}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.010
   m_TagString: Gun
   m_Icon: {fileID: 0}
@@ -304,8 +304,9 @@ MonoBehaviour:
   bulletsPerBurst: 3
   fireInterval: 0.1
   restInterval: 2
+  restIntervalRandom: 0.2
   bulletSpeed: 15
-  bulletDamage: 10
+  bulletDamage: 5
   customBulletPrefab: {fileID: 7111184588095663160, guid: d15ef0b4a304bc248ac64361a888ab99, type: 3}
   firePoints:
   - {fileID: 907610297610569968}
@@ -343,7 +344,7 @@ GameObject:
   - component: {fileID: 951453263677265716}
   - component: {fileID: 4017891709476744586}
   - component: {fileID: 4298014677920202981}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_Wings_Low.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -427,7 +428,7 @@ GameObject:
   - component: {fileID: 7739105552342131243}
   - component: {fileID: 2286292870729752070}
   - component: {fileID: 676245200203736409}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -512,7 +513,7 @@ GameObject:
   - component: {fileID: 9170974813023162541}
   - component: {fileID: 6774031569451142719}
   - component: {fileID: 822150904575840770}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.007
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -595,7 +596,7 @@ GameObject:
   - component: {fileID: 2732821907412198001}
   - component: {fileID: 6659586805504397304}
   - component: {fileID: 5467937473514204521}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.008
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -678,7 +679,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9079220155351492790}
   - component: {fileID: 331112647207417818}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: ShootingAudio
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -807,7 +808,7 @@ GameObject:
   - component: {fileID: 4528831093621661488}
   - component: {fileID: 4233664962640949007}
   - component: {fileID: 3142726045632609064}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.011
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -892,7 +893,7 @@ GameObject:
   - component: {fileID: 4578520409154922401}
   - component: {fileID: 7933615657691462898}
   - component: {fileID: 5523573175679131784}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1010,7 +1011,7 @@ GameObject:
   - component: {fileID: 7503952150865296037}
   - component: {fileID: 6820401780767488937}
   - component: {fileID: 4902886345500950633}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_Wings_Low
   m_TagString: Gun
   m_Icon: {fileID: 0}
@@ -1126,8 +1127,9 @@ MonoBehaviour:
   bulletsPerBurst: 3
   fireInterval: 0.1
   restInterval: 2
+  restIntervalRandom: 0.2
   bulletSpeed: 15
-  bulletDamage: 10
+  bulletDamage: 5
   customBulletPrefab: {fileID: 7111184588095663160, guid: d15ef0b4a304bc248ac64361a888ab99, type: 3}
   firePoints:
   - {fileID: 1162815105349155883}
@@ -1165,7 +1167,7 @@ GameObject:
   - component: {fileID: 1856535471055485952}
   - component: {fileID: 2821662621806295146}
   - component: {fileID: 1705922353466144761}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1248,7 +1250,7 @@ GameObject:
   - component: {fileID: 5811833905703524302}
   - component: {fileID: 3076214567431386985}
   - component: {fileID: 8650576323070488309}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_Wings_Low.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1332,7 +1334,7 @@ GameObject:
   - component: {fileID: 7771757744085619283}
   - component: {fileID: 2888658734841322427}
   - component: {fileID: 3078119221274590104}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1494,7 +1496,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 2}
+  m_Size: {x: 2.5, y: 2.5, z: 2.5}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &2270549965720854744
 MonoBehaviour:
@@ -1508,7 +1510,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf9ac7a8396ef7c4e8e63d8f9245db53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 100
+  health: 300
   deathEffectPrefab: {fileID: 1828176872806910, guid: 415004970e937ec409abe4855d9550e0, type: 3}
   weaponDetachForce: 15
   detachOnDeath: 0
@@ -1537,6 +1539,7 @@ MonoBehaviour:
   bulletsPerBurst: 0
   fireInterval: 0.1
   restInterval: 2
+  restIntervalRandom: 0.2
   bulletSpeed: 15
   bulletDamage: 10
   customBulletPrefab: {fileID: 7111184588095663160, guid: d15ef0b4a304bc248ac64361a888ab99, type: 3}
@@ -1574,7 +1577,7 @@ GameObject:
   - component: {fileID: 8902157174675650748}
   - component: {fileID: 6977673944962059703}
   - component: {fileID: 3253576677015812840}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1657,7 +1660,7 @@ GameObject:
   - component: {fileID: 684120303248259984}
   - component: {fileID: 1251067877580132818}
   - component: {fileID: 794226253381068616}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.005
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1741,7 +1744,7 @@ GameObject:
   - component: {fileID: 6443473389909525667}
   - component: {fileID: 6833018505095534224}
   - component: {fileID: 3881468347757293452}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mech_inner.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}

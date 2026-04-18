@@ -517,13 +517,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07b89282707e105439e49f902fa3f7a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxWaves: 10
-  enemiesPerWave: 1
   enemyPrefabs:
+  - {fileID: 8681164994325861681, guid: e6f08ef95515fca4889c3e80f0cec3b3, type: 3}
   - {fileID: 6385423206836043678, guid: 738b30a221be2d0429b5fb7988eab0f1, type: 3}
-  spawnCenterXZ: {x: 6, y: -6}
-  spawnHeightY: 2
-  spawnRadius: 2
   buffUIPrefab: {fileID: 7443153400273329591, guid: 026467c0e1f05a141b0c7dc3013db9a8, type: 3}
   buffSpawnDistance: 3
   buffSpawnSpacing: 1.2
@@ -1107,6 +1103,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 2871854915951832589, guid: 65eb6b98091a5734ba9d9ca871cef69a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.7
+      objectReference: {fileID: 0}
     - target: {fileID: 2871854916312727130, guid: 65eb6b98091a5734ba9d9ca871cef69a, type: 3}
       propertyPath: m_Layer
       value: 11
@@ -1375,6 +1375,10 @@ PrefabInstance:
       propertyPath: m_MoveDeadzone
       value: 0.6
       objectReference: {fileID: 0}
+    - target: {fileID: 8189171602916567492, guid: 65eb6b98091a5734ba9d9ca871cef69a, type: 3}
+      propertyPath: m_Height
+      value: 1.9
+      objectReference: {fileID: 0}
     - target: {fileID: 8475227832468170691, guid: 65eb6b98091a5734ba9d9ca871cef69a, type: 3}
       propertyPath: m_Layer
       value: 11
@@ -1450,7 +1454,7 @@ MonoBehaviour:
   laserDamage: 25
   penetrate: 0
   penetrationDamage: 0
-  fireRate: 1
+  fireRate: 0.5
   minFireRate: 0.2
   firePoint: {fileID: 0}
   playerStatus: {fileID: 0}
@@ -1480,7 +1484,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.2
+  m_Radius: 0.15
   m_Center: {x: 0, y: -0.03, z: -0.02}
 --- !u!1 &1220031075
 GameObject:

@@ -26,10 +26,10 @@ public class RightGun : MonoBehaviour
     public float penetrationDamage = 0.0f;
 
     [Tooltip("Time between shots in seconds.")]
-    public float fireRate = 1.0f;
+    public float fireRate = 0.5f;
 
     [Tooltip("Minimum time between shots in seconds.")]
-    public float minFireRate = 0.2f;
+    public float minFireRate = 0.1f;
 
     [Tooltip("Optional: The point where the laser spawns. If left null, it will use this script's transform.")]
     public Transform firePoint;
