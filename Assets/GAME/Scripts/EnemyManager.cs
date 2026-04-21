@@ -31,9 +31,10 @@ public class EnemyManager : MonoBehaviour
     [Tooltip("Distance between the buff options horizontally.")]
     public float buffSpawnSpacing = 1.2f;
 
-    private bool isWaitingForBuff = false;
+    public bool IsWaitingForBuff { get; private set; } = false;
     private List<GameObject> activeBuffs = new List<GameObject>();
     private int remainingBuffsToChoose = 0;
+    private int remainingGoldBuffWaves = 0;
 
     void Update()
     {
@@ -70,9 +71,10 @@ public class EnemyManager : MonoBehaviour
                 if (finishedWaveIndex >= 0 && finishedWaveIndex < WaveData.Waves.Count)
                 {
                     remainingBuffsToChoose = WaveData.Waves[finishedWaveIndex].buffsToChoose;
+                    remainingGoldBuffWaves = WaveData.Waves[finishedWaveIndex].goldBuffs;
                 }
                 
-                if (currentWave < WaveData.Waves.Count && !isWaitingForBuff)
+                if (currentWave < WaveData.Waves.Count && !IsWaitingForBuff)
                 {
                     if (remainingBuffsToChoose > 0)
                     {
@@ -83,7 +85,7 @@ public class EnemyManager : MonoBehaviour
                         SpawnNextWave();
                     }
                 }
-                else if (currentWave == WaveData.Waves.Count && !isWaitingForBuff)
+                else if (currentWave == WaveData.Waves.Count && !IsWaitingForBuff)
                 {
                     PlayerStatus playerStatus = FindObjectOfType<PlayerStatus>();
                     if (playerStatus != null && !playerStatus.isGameOver)
@@ -93,7 +95,7 @@ public class EnemyManager : MonoBehaviour
                 }
             }
         }
-        else if (currentWave == 0 && !isWaitingForBuff)
+        else if (currentWave == 0 && !IsWaitingForBuff)
         {
             // Start the very first wave automatically
             SpawnNextWave();
@@ -201,7 +203,7 @@ public class EnemyManager : MonoBehaviour
             return;
         }
 
-        isWaitingForBuff = true;
+        IsWaitingForBuff = true;
         
         // Find player's current position and forward vector (approximate using MainCamera)
         Transform player = Camera.main != null ? Camera.main.transform : transform;
@@ -214,14 +216,84 @@ public class EnemyManager : MonoBehaviour
         // Calculate the angle to separate them so the arc length between them is roughly buffSpawnSpacing
         float angleSpread = (buffSpawnSpacing / buffSpawnDistance) * Mathf.Rad2Deg;
 
-        // Randomly select 3 different buffs
-        List<Buff> selectedBuffs = new List<Buff>();
-        List<Buff> allBuffs = new List<Buff>(BuffDatabase.AvailableBuffs);
-        for (int i = 0; i < 3 && allBuffs.Count > 0; i++)
+        int waveIndexForBuffs = Mathf.Max(0, currentWave - 1);
+        WaveConfig waveConfig = (waveIndexForBuffs < WaveData.Waves.Count) 
+            ? WaveData.Waves[waveIndexForBuffs] 
+            : new WaveConfig();
+            
+        List<Buff> goldPool = new List<Buff>();
+        List<Buff> commonPool = new List<Buff>();
+        
+        foreach (var b in BuffDatabase.AvailableBuffs)
         {
-            int randomIndex = Random.Range(0, allBuffs.Count);
-            selectedBuffs.Add(allBuffs[randomIndex]);
-            allBuffs.RemoveAt(randomIndex);
+            if (b.isGoldBuff) goldPool.Add(b);
+            else commonPool.Add(b);
+        }
+
+        RightGun rightGun = FindObjectOfType<RightGun>();
+        if (rightGun != null && rightGun.homing)
+        {
+            goldPool.RemoveAll(b => b.type == BuffType.HomingLasers);
+        }
+
+        List<Buff> selectedBuffs = new List<Buff>();
+        
+        bool isGoldWave = remainingGoldBuffWaves > 0;
+        if (isGoldWave)
+        {
+            remainingGoldBuffWaves--;
+        }
+
+        // 1. If it's a gold wave, pull as many gold buffs as possible (up to 3)
+        if (isGoldWave)
+        {
+            int maxGolds = Mathf.Min(3, goldPool.Count);
+            for (int i = 0; i < maxGolds; i++)
+            {
+                int randomIndex = Random.Range(0, goldPool.Count);
+                Buff chosenGold = goldPool[randomIndex];
+                goldPool.RemoveAt(randomIndex);
+                chosenGold.name = "[Legendary] " + chosenGold.name;
+                selectedBuffs.Add(chosenGold);
+            }
+        }
+
+        // 2. Fill whatever remaining slots there are (or all 3 if not a gold wave) with Common buffs
+        int commonToSpawn = 3 - selectedBuffs.Count;
+        for (int i = 0; i < commonToSpawn && commonPool.Count > 0; i++)
+        {
+            int randomIndex = Random.Range(0, commonPool.Count);
+            Buff chosenCommon = commonPool[randomIndex];
+            commonPool.RemoveAt(randomIndex);
+            
+            // Determine Rarity
+            float roll = Random.value;
+            BuffRarity rarity = BuffRarity.Green;
+            
+            float gProb = waveConfig.greenBuffProb;
+            float bProb = waveConfig.blueBuffProb;
+            float pProb = waveConfig.purpleBuffProb;
+            float totalProb = gProb + bProb + pProb;
+            
+            if (totalProb > 0)
+            {
+                roll *= totalProb;
+                if (roll <= gProb) rarity = BuffRarity.Green;
+                else if (roll <= gProb + bProb) rarity = BuffRarity.Blue;
+                else rarity = BuffRarity.Purple;
+            }
+            
+            chosenCommon.ScaleRarity(rarity);
+            selectedBuffs.Add(chosenCommon);
+        }
+        
+        // Shuffle the selected buffs to randomize their layout
+        for (int i = 0; i < selectedBuffs.Count; i++)
+        {
+            Buff temp = selectedBuffs[i];
+            int randomIndex = Random.Range(i, selectedBuffs.Count);
+            selectedBuffs[i] = selectedBuffs[randomIndex];
+            selectedBuffs[randomIndex] = temp;
         }
 
         for (int i = 0; i < 3; i++)
@@ -257,7 +329,7 @@ public class EnemyManager : MonoBehaviour
             if (buff != null) Destroy(buff);
         }
         activeBuffs.Clear();
-        isWaitingForBuff = false;
+        IsWaitingForBuff = false;
         
         remainingBuffsToChoose--;
 

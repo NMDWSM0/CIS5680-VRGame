@@ -32,6 +32,18 @@ public class WaveConfig
 {
     [Tooltip("How many buffs the player can choose after this wave finishes.")]
     public int buffsToChoose = 1;
+
+    [Header("Buff Rarity Probabilities")]
+    [Tooltip("Probability of generating a Green buff (common).")]
+    public float greenBuffProb = 0.6f;
+    [Tooltip("Probability of generating a Blue buff (uncommon).")]
+    public float blueBuffProb = 0.3f;
+    [Tooltip("Probability of generating a Purple buff (rare).")]
+    public float purpleBuffProb = 0.1f;
+
+    [Tooltip("Number of guaranteed Gold buffs (specific unique buffs) among the 3 choices. If >= 3, all are gold.")]
+    public int goldBuffs = 0;
+
     public List<EnemySpawnConfig> enemyGroups = new List<EnemySpawnConfig>();
 }
 
@@ -45,12 +57,16 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 1,
+            greenBuffProb = 1.0f,
+            blueBuffProb = 0.0f,
+            purpleBuffProb = 0.0f,
+            goldBuffs = 0,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 1, 
+                    count = 2, 
                     maxOnStage = 1,
                     spawnPositionType = SpawnPositionType.InFrontOfPlayer, 
                     spawnDistanceMin = 14f,
@@ -64,12 +80,16 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 1,
+            greenBuffProb = 0.8f,
+            blueBuffProb = 0.2f,
+            purpleBuffProb = 0.0f,
+            goldBuffs = 0,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 2, 
+                    count = 4, 
                     maxOnStage = 2,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f,
@@ -84,12 +104,16 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 2,
+            greenBuffProb = 0.7f,
+            blueBuffProb = 0.3f,
+            purpleBuffProb = 0.0f,
+            goldBuffs = 1,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 3, 
+                    count = 6, 
                     maxOnStage = 2,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f,
@@ -104,12 +128,16 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 2,
+            greenBuffProb = 0.6f,
+            blueBuffProb = 0.3f,
+            purpleBuffProb = 0.1f,
+            goldBuffs = 0,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 4, 
+                    count = 8, 
                     maxOnStage = 2,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f,
@@ -123,6 +151,10 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 3,
+            greenBuffProb = 0.6f,
+            blueBuffProb = 0.3f,
+            purpleBuffProb = 0.1f,
+            goldBuffs = 1,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
@@ -142,13 +174,17 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 2,
+            greenBuffProb = 0.55f,
+            blueBuffProb = 0.3f,
+            purpleBuffProb = 0.15f,
+            goldBuffs = 0,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 5, 
-                    maxOnStage = 2,
+                    count = 8, 
+                    maxOnStage = 3,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f,
                     spawnDistanceMax = 16f,
@@ -163,13 +199,17 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 2,
+            greenBuffProb = 0.45f,
+            blueBuffProb = 0.35f,
+            purpleBuffProb = 0.2f,
+            goldBuffs = 0,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 6, 
-                    maxOnStage = 2,
+                    count = 10, 
+                    maxOnStage = 3,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f,
                     spawnDistanceMax = 16f,
@@ -184,13 +224,17 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 3,
+            greenBuffProb = 0.35f,
+            blueBuffProb = 0.4f,
+            purpleBuffProb = 0.25f,
+            goldBuffs = 1,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 6, 
-                    maxOnStage = 2,
+                    count = 12, 
+                    maxOnStage = 4,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f,
                     spawnDistanceMax = 16f,
@@ -205,13 +249,17 @@ public static class WaveData
         new WaveConfig 
         {
             buffsToChoose = 3,
+            greenBuffProb = 0.3f,
+            blueBuffProb = 0.4f,
+            purpleBuffProb = 0.3f,
+            goldBuffs = 1,
             enemyGroups = new List<EnemySpawnConfig> 
             {
                 new EnemySpawnConfig 
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
-                    count = 6, 
-                    maxOnStage = 3,
+                    count = 16, 
+                    maxOnStage = 4,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f, 
                     spawnDistanceMax = 16f,
@@ -241,7 +289,7 @@ public static class WaveData
                 { 
                     enemyTypeId = 0, // Uses enemyPrefabs[0]
                     count = 6, 
-                    maxOnStage = 1,
+                    maxOnStage = 2,
                     spawnPositionType = SpawnPositionType.RandomArc, 
                     spawnDistanceMin = 12f,
                     spawnDistanceMax = 16f,

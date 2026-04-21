@@ -1451,11 +1451,12 @@ MonoBehaviour:
   triggerAction: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   rayInteractor: {fileID: 1052058342}
   laserPrefab: {fileID: 9016977922137134628, guid: c913fd3ed6792ee4e9e978e6c5b5bf43, type: 3}
-  laserDamage: 25
+  laserDamage: 10
+  fireRate: 0.25
   penetrate: 0
   penetrationDamage: 0
-  fireRate: 0.5
-  minFireRate: 0.2
+  multishot: 1
+  homing: 0
   firePoint: {fileID: 0}
   playerStatus: {fileID: 0}
   reticleVisual: {fileID: 0}
@@ -1709,9 +1710,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 100
   maxHealth: 100
-  ammo: 0
-  maxAmmo: 100
+  ammo: 10
+  maxAmmo: 30
   ammoEfficiency: 1
+  autoAmmoRecharge: 0.2
   damageMultiplier: 1
   critRate: 0
   lifeSteal: 0

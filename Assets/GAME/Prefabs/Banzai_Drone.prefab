@@ -83,7 +83,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.7, y: 1, z: 1.4}
+  m_Size: {x: 1.7, y: 1.2, z: 1.4}
   m_Center: {x: 0, y: 0.3, z: 0}
 --- !u!114 &5413606668263348154
 MonoBehaviour:
@@ -125,7 +125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bulletsPerBurst: 1
   fireInterval: 0
-  restInterval: 2
+  restInterval: 5
   restIntervalRandom: 0
   bulletSpeed: 8
   bulletDamage: 10

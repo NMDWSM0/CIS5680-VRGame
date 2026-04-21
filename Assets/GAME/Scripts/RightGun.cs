@@ -17,24 +17,27 @@ public class RightGun : MonoBehaviour
     public GameObject laserPrefab;
 
     [Tooltip("How much damage each laser shot deals to enemies.")]
-    public float laserDamage = 25f;
+    public float laserDamage = 10f;
 
+    [Tooltip("Time between shots in seconds.")]
+    public float fireRate = 0.2f;
+
+    // advanced features
     [Tooltip("If true, the laser pierces through enemies and hits all of them in its path.")]
     public bool penetrate = false;
 
     [Tooltip("Damage multiplier for penetration.")]
     public float penetrationDamage = 0.0f;
 
-    [Tooltip("Time between shots in seconds.")]
-    public float fireRate = 0.5f;
+    [Tooltip("Number of lasers to shoot at once.")]
+    public int multishot = 1;
 
-    [Tooltip("Minimum time between shots in seconds.")]
-    public float minFireRate = 0.1f;
+    [Tooltip("If true, the laser will home in on enemies.")]
+    public bool homing = false;
 
+    // visuals
     [Tooltip("Optional: The point where the laser spawns. If left null, it will use this script's transform.")]
     public Transform firePoint;
-
-    private float lastFireTime = -9999f;
 
     [Header("Player Setup")]
     [Tooltip("Reference to the player's status script to manage ammunition. Automatically attempts to find it if left null.")]
@@ -49,6 +52,8 @@ public class RightGun : MonoBehaviour
     public AudioClip shootSound;
 
     private AudioSource audioSource;
+
+    private float lastFireTime = -9999f;
 
     private void Start()
     {
@@ -138,7 +143,7 @@ public class RightGun : MonoBehaviour
         // 3. Check and consume ammunition
         if (playerStatus != null)
         {
-            if (!playerStatus.TryConsumeAmmo())
+            if (!playerStatus.TryConsumeAmmo(1 + 0.1f * (multishot - 1)))
             {
                 // We are out of ammo! The PlayerStatus script handles the Debug.Log.
                 return;
@@ -160,32 +165,75 @@ public class RightGun : MonoBehaviour
     {
         Transform spawnPoint = firePoint != null ? firePoint : transform;
 
-        GameObject laserObj;
-
-        // Instantiate or create the laser
-        if (laserPrefab != null)
-        {
-            laserObj = Instantiate(laserPrefab, spawnPoint.position, spawnPoint.rotation);
-        }
-        else
-        {
-            laserObj = new GameObject("Generated Laser Beam");
-            laserObj.transform.position = spawnPoint.position;
-            laserObj.transform.rotation = spawnPoint.rotation;
-        }
-
-        // Ensure it has the LaserBeam script to manage stretching/anchoring
-        LaserBeam laserScript = laserObj.GetComponent<LaserBeam>();
-        if (laserScript == null)
-        {
-            laserScript = laserObj.AddComponent<LaserBeam>();
-        }
-
         // Calculate dynamic damage applying multipliers and crit
         float finalDamage = CalculateFinalDamage();
 
-        // Initialize it so it anchors to the gun and starts extending
-        laserScript.Initialize(spawnPoint, finalDamage, penetrate, playerStatus, penetrationDamage);
+        for (int i = 0; i < multishot; i++)
+        {
+            float angleOffset = (i - (multishot - 1) / 2f) * (multishot <= 3 ? 15f : (multishot <= 5 ? 10f : 8.5f));
+            Quaternion spawnRot = spawnPoint.rotation * Quaternion.Euler(0, angleOffset, 0);
+
+            if (homing)
+            {
+                Vector3 currentForward = spawnRot * Vector3.forward;
+                float closestDist = 100f; // maxDistance
+                Vector3 bestTargetPos = Vector3.zero;
+                bool foundTarget = false;
+
+                Collider[] hitColliders = Physics.OverlapSphere(spawnPoint.position, 100f);
+                foreach (Collider col in hitColliders)
+                {
+                    if (col.CompareTag("Enemy") || col.CompareTag("Gun"))
+                    {
+                        Vector3 targetPos = col.bounds.center;
+                        Vector3 toTarget = targetPos - spawnPoint.position;
+                        float dist = toTarget.magnitude;
+                        float smallAngle = 5f;
+
+                        if (dist < closestDist)
+                        {
+                            float angle = Vector3.Angle(currentForward, toTarget);
+                            if (angle <= smallAngle)
+                            {
+                                smallAngle = angle;
+                                bestTargetPos = targetPos;
+                                foundTarget = true;
+                            }
+                        }
+                    }
+                }
+
+                if (foundTarget)
+                {
+                    Vector3 toTarget = bestTargetPos - spawnPoint.position;
+                    spawnRot = Quaternion.LookRotation(toTarget);
+                }
+            }
+
+            GameObject laserObj;
+
+            // Instantiate or create the laser
+            if (laserPrefab != null)
+            {
+                laserObj = Instantiate(laserPrefab, spawnPoint.position, spawnRot);
+            }
+            else
+            {
+                laserObj = new GameObject("Generated Laser Beam");
+                laserObj.transform.position = spawnPoint.position;
+                laserObj.transform.rotation = spawnRot;
+            }
+
+            // Ensure it has the LaserBeam script to manage stretching/anchoring
+            LaserBeam laserScript = laserObj.GetComponent<LaserBeam>();
+            if (laserScript == null)
+            {
+                laserScript = laserObj.AddComponent<LaserBeam>();
+            }
+
+            // Initialize it using its own transform so it tracks its specific angled raycast correctly
+            laserScript.Initialize(laserObj.transform, finalDamage, penetrate, playerStatus, penetrationDamage);
+        }
 
         // Play shoot audio
         if (shootSound != null && audioSource != null)
@@ -202,7 +250,7 @@ public class RightGun : MonoBehaviour
     /// </summary>
     private float CalculateFinalDamage()
     {
-        float damage = laserDamage;
+        float damage = laserDamage - (multishot - 1) * 0.5f;
         
         if (playerStatus != null)
         {

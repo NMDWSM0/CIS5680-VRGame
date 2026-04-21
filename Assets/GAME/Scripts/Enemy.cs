@@ -83,13 +83,28 @@ public class Enemy : MonoBehaviour, IEnemy
                 // Shift text up slightly to make room for the bar
                 textObj.transform.localPosition = new Vector3(0, 0.2f, 0);
 
+                // Unity strips the default primitive shader in builds, causing magenta/purple materials. 
+                // To safely bypass this via script, we steal a compiled material from the enemy itself.
+                Material safeMat = null;
+                Renderer safeRend = GetComponentInChildren<Renderer>();
+                if (safeRend != null && safeRend.sharedMaterial != null)
+                {
+                    safeMat = new Material(safeRend.sharedMaterial);
+                    // Remove any textures so it becomes a solid color material
+                    if (safeMat.HasProperty("_MainTex")) safeMat.SetTexture("_MainTex", null);
+                    if (safeMat.HasProperty("_BaseMap")) safeMat.SetTexture("_BaseMap", null);
+                }
+
                 // Background Bar (Black)
                 GameObject bgBar = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 Destroy(bgBar.GetComponent<Collider>());
                 bgBar.transform.SetParent(uiRoot);
                 bgBar.transform.localPosition = Vector3.zero;
                 bgBar.transform.localScale = new Vector3(1.0f, 0.15f, 1f);
-                bgBar.GetComponent<Renderer>().material.color = Color.black;
+                
+                Renderer bgRend = bgBar.GetComponent<Renderer>();
+                if (safeMat != null) bgRend.material = new Material(safeMat);
+                bgRend.material.color = Color.black;
 
                 // Foreground Bar (Green)
                 GameObject fgBar = GameObject.CreatePrimitive(PrimitiveType.Quad);
@@ -101,9 +116,14 @@ public class Enemy : MonoBehaviour, IEnemy
                 fgBar.transform.localScale = new Vector3(1.0f, 0.15f, 1f);
                 
                 Renderer fgRend = fgBar.GetComponent<Renderer>();
+                if (safeMat != null) fgRend.material = new Material(safeMat);
+
                 fgRend.material.color = Color.green;
                 fgRend.material.EnableKeyword("_EMISSION");
-                fgRend.material.SetColor("_EmissionColor", Color.green * 0.5f);
+                if (fgRend.material.HasProperty("_EmissionColor"))
+                {
+                    fgRend.material.SetColor("_EmissionColor", Color.green * 0.5f);
+                }
 
                 healthBarForeground = fgBar.transform;
             }

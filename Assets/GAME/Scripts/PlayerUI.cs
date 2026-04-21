@@ -24,12 +24,12 @@ public class StatUI
 
         if (currentText != null)
         {
-            currentText.text = $"Current {current}";
+            currentText.text = $"Current {current:F1}";
         }
 
         if (maxText != null)
         {
-            maxText.text = $"Max {max}";
+            maxText.text = $"Max {max:F0}";
         }
     }
 }

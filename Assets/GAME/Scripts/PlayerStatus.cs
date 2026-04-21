@@ -9,13 +9,17 @@ public class PlayerStatus : MonoBehaviour
     public float maxHealth = 100f;
 
     [Tooltip("Current ammunition.")]
-    public int ammo = 0;
+    public float ammo = 0f;
 
     [Tooltip("Maximum ammunition capacity.")]
-    public int maxAmmo = 100;
+    public float maxAmmo = 30f;
 
     [Tooltip("Efficiency of converting absorbed damage to ammo.")]
     public float ammoEfficiency = 1.0f;
+
+    [Header("Auto Ammo Recharge")]
+    [Tooltip("Amount of ammo to recharge per second.")]
+    public float autoAmmoRecharge = 0.2f;
 
     [Header("Combat Stats")]
     [Tooltip("Damage multiplier (starts at 1.0 = 100%).")]
@@ -36,27 +40,44 @@ public class PlayerStatus : MonoBehaviour
 
     public bool isGameOver = false;
 
+    private EnemyManager _enemyManager;
+
+    private void Start()
+    {
+        _enemyManager = FindObjectOfType<EnemyManager>();
+    }
+
+    private void Update()
+    {
+        if (autoAmmoRecharge > 0 && ammo < maxAmmo && !isGameOver)
+        {
+            if (_enemyManager != null && _enemyManager.IsWaitingForBuff) return;
+
+            ammo += autoAmmoRecharge * Time.deltaTime;
+            ammo = Mathf.Clamp(ammo, 0f, maxAmmo);
+        }
+    }
+
     /// <summary>
     /// Called when the player's shield absorbs incoming damage.
     /// Converts that absorbed damage into ammunition!
     /// </summary>
     public void AddAmmoFromDamage(float damageAbsorbed)
     {
-        // Add 1 ammo for every 1 damage absorbed (can be tweaked)
-        int ammoGained = Mathf.RoundToInt(damageAbsorbed * ammoEfficiency);
-        ammo = Mathf.Clamp(ammo + ammoGained, 0, maxAmmo);
+        float ammoGained = damageAbsorbed * ammoEfficiency * 0.5f;
+        ammo = Mathf.Clamp(ammo + ammoGained, 0f, maxAmmo);
         
-        Debug.Log($"Absorbed {damageAbsorbed} damage and converted to {ammoGained} ammo! Total Ammo: {ammo}/{maxAmmo}");
+        Debug.Log($"Absorbed {damageAbsorbed} damage and converted to {ammoGained:F2} ammo! Total Ammo: {ammo:F2}/{maxAmmo}");
     }
 
     /// <summary>
-    /// Attempts to consume 1 ammo to fire the gun. Returns true if successful.
+    /// Attempts to consume ammo to fire the gun. Returns true if successful.
     /// </summary>
-    public bool TryConsumeAmmo()
+    public bool TryConsumeAmmo(float value = 1f)
     {
-        if (ammo >= 10)
+        if (ammo >= value)
         {
-            ammo -= 10;
+            ammo -= value;
             return true;
         }
         Debug.Log("Out of ammo! Block bullets with the shield to recharge.");
