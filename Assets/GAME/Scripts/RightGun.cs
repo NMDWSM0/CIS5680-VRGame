@@ -5,9 +5,24 @@ using UnityEngine.EventSystems; // Required for RaycastResult
 
 public class RightGun : MonoBehaviour
 {
+    public enum FireMode
+    {
+        Laser,
+        PulseBullet
+    }
+
+    [Header("Fire Mode")]
+    [Tooltip("Select whether the gun shoots an instant laser or traveling pulse bullets.")]
+    public FireMode currentFireMode = FireMode.Laser;
+
     [Header("Input Setup")]
     [Tooltip("Reference to the input action (e.g. XRI RightHand/Activate).")]
     public InputActionReference triggerAction;
+
+    [Tooltip("If true, holding the trigger will continuously fire the weapon.")]
+    public bool autoFire = false;
+
+    private bool isTriggerHeld = false;
 
     [Tooltip("Reference to the XR Ray Interactor on this controller to check for UI/Interactables.")]
     public XRRayInteractor rayInteractor;
@@ -16,8 +31,16 @@ public class RightGun : MonoBehaviour
     [Tooltip("Optional: A prefab for the laser, which must have the LaserBeam script on it. If left null, one will be auto-generated.")]
     public GameObject laserPrefab;
 
-    [Tooltip("How much damage each laser shot deals to enemies.")]
-    public float laserDamage = 10f;
+    [Header("Pulse Bullet Setup")]
+    [Tooltip("Optional: A prefab for the pulse bullet. If left null, a cyan pulse will be auto-generated.")]
+    public GameObject pulseBulletPrefab;
+    
+    [Tooltip("Speed of the pulse bullet when in PulseBullet mode.")]
+    public float pulseSpeed = 40f;
+
+    [Header("Combat Settings")]
+    [Tooltip("How much damage each laser/pulse shot deals to enemies.")]
+    public float baseDamage = 10f;
 
     [Tooltip("Time between shots in seconds.")]
     public float fireRate = 0.2f;
@@ -102,6 +125,7 @@ public class RightGun : MonoBehaviour
         if (triggerAction != null && triggerAction.action != null)
         {
             triggerAction.action.performed += OnTriggerPerformed;
+            triggerAction.action.canceled += OnTriggerCanceled;
             triggerAction.action.Enable();
         }
     }
@@ -111,10 +135,27 @@ public class RightGun : MonoBehaviour
         if (triggerAction != null && triggerAction.action != null)
         {
             triggerAction.action.performed -= OnTriggerPerformed;
+            triggerAction.action.canceled -= OnTriggerCanceled;
         }
     }
 
     private void OnTriggerPerformed(InputAction.CallbackContext context)
+    {
+        isTriggerHeld = true;
+        
+        // If not auto-firing, we fire exactly once when the trigger is pulled
+        if (!autoFire)
+        {
+            TryFire();
+        }
+    }
+
+    private void OnTriggerCanceled(InputAction.CallbackContext context)
+    {
+        isTriggerHeld = false;
+    }
+
+    private void TryFire()
     {
         if (Time.time - lastFireTime < fireRate)
         {
@@ -154,14 +195,14 @@ public class RightGun : MonoBehaviour
             Debug.LogWarning("RightGun: No PlayerStatus found! Free firing allowed.");
         }
 
-        // 4. Shoot the laser
-        ShootLaser();
+        // 4. Shoot the weapon
+        FireWeapon();
         
         // 5. Update last fire time
         lastFireTime = Time.time;
     }
 
-    private void ShootLaser()
+    private void FireWeapon()
     {
         Transform spawnPoint = firePoint != null ? firePoint : transform;
 
@@ -210,29 +251,58 @@ public class RightGun : MonoBehaviour
                 }
             }
 
-            GameObject laserObj;
-
-            // Instantiate or create the laser
-            if (laserPrefab != null)
+            if (currentFireMode == FireMode.Laser)
             {
-                laserObj = Instantiate(laserPrefab, spawnPoint.position, spawnRot);
-            }
-            else
-            {
-                laserObj = new GameObject("Generated Laser Beam");
-                laserObj.transform.position = spawnPoint.position;
-                laserObj.transform.rotation = spawnRot;
-            }
+                GameObject laserObj;
 
-            // Ensure it has the LaserBeam script to manage stretching/anchoring
-            LaserBeam laserScript = laserObj.GetComponent<LaserBeam>();
-            if (laserScript == null)
-            {
-                laserScript = laserObj.AddComponent<LaserBeam>();
-            }
+                // Instantiate or create the laser
+                if (laserPrefab != null)
+                {
+                    laserObj = Instantiate(laserPrefab, spawnPoint.position, spawnRot);
+                }
+                else
+                {
+                    laserObj = new GameObject("Generated Laser Beam");
+                    laserObj.transform.position = spawnPoint.position;
+                    laserObj.transform.rotation = spawnRot;
+                }
 
-            // Initialize it using its own transform so it tracks its specific angled raycast correctly
-            laserScript.Initialize(laserObj.transform, finalDamage, penetrate, playerStatus, penetrationDamage);
+                // Ensure it has the LaserBeam script to manage stretching/anchoring
+                LaserBeam laserScript = laserObj.GetComponent<LaserBeam>();
+                if (laserScript == null)
+                {
+                    laserScript = laserObj.AddComponent<LaserBeam>();
+                }
+
+                // Initialize it using its own transform so it tracks its specific angled raycast correctly
+                laserScript.Initialize(laserObj.transform, finalDamage, penetrate, playerStatus, penetrationDamage);
+            }
+            else if (currentFireMode == FireMode.PulseBullet)
+            {
+                GameObject pulseObj;
+
+                // Instantiate or create the pulse bullet
+                if (pulseBulletPrefab != null)
+                {
+                    pulseObj = Instantiate(pulseBulletPrefab, spawnPoint.position, spawnRot);
+                }
+                else
+                {
+                    pulseObj = new GameObject("Generated Pulse Bullet");
+                    pulseObj.transform.position = spawnPoint.position;
+                    pulseObj.transform.rotation = spawnRot;
+                }
+
+                // Ensure it has the PulseBullet script
+                PulseBullet pulseScript = pulseObj.GetComponent<PulseBullet>();
+                if (pulseScript == null)
+                {
+                    pulseScript = pulseObj.AddComponent<PulseBullet>();
+                }
+
+                // Initialize pulse
+                pulseScript.Initialize(finalDamage, penetrate, playerStatus, penetrationDamage, pulseSpeed);
+            }
         }
 
         // Play shoot audio
@@ -250,7 +320,7 @@ public class RightGun : MonoBehaviour
     /// </summary>
     private float CalculateFinalDamage()
     {
-        float damage = laserDamage - (multishot - 1) * 0.5f;
+        float damage = baseDamage - (multishot - 1) * 0.5f;
         
         if (playerStatus != null)
         {
@@ -270,6 +340,12 @@ public class RightGun : MonoBehaviour
 
     private void Update()
     {
+        // Handle Auto-Fire continuous shooting
+        if (autoFire && isTriggerHeld)
+        {
+            TryFire();
+        }
+
         // Manage the laser sight / red dot position every frame
         if (rayInteractor != null && reticleVisual != null)
         {
