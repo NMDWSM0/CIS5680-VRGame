@@ -188,6 +188,7 @@ GameObject:
   - component: {fileID: 586812485981830045}
   - component: {fileID: 4668156431535410699}
   - component: {fileID: 648742539106400544}
+  - component: {fileID: 7101775974895222912}
   m_Layer: 7
   m_Name: Mech_inner.010
   m_TagString: Gun
@@ -275,17 +276,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf9ac7a8396ef7c4e8e63d8f9245db53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 100
-  deathEffectPrefab: {fileID: 1329845292236604, guid: 9c5ff7d2b94f1054c8d64df1504047f8, type: 3}
+  health: 50
   weaponDetachForce: 15
-  detachOnDeath: 0
-  fracturedPrefab: {fileID: 9204916731571370029, guid: ed6fc8a3a3743ac47a3927cb2cc2b23f, type: 3}
-  explosionForce: 300
-  explosionRadius: 2
+  detachOnDeath: 1
   bodyCleanupTime: 5
-  fragmentRandomSpeed: 5
   healthText: {fileID: 0}
   healthUiPosition: {x: 0, y: 1.6, z: 0}
+  knockbackSpeed: 0
+  knockbackDistance: 0
   generateHealthBar: 1
   deathSound: {fileID: 8300000, guid: 958408b32ccf3714ea02821877b0870c, type: 3}
   deathSoundVolume: 1
@@ -333,6 +331,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.011083726, y: 0.018584017, z: 0.02117262}
   m_Center: {x: 0.013456257, y: 0.00038279264, z: -0.000076730255}
+--- !u!114 &7101775974895222912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 673724311657912750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5acf13aea8e73654a978a7b361e05089, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deathEffectPrefab: {fileID: 1828176872806910, guid: 415004970e937ec409abe4855d9550e0, type: 3}
+  fracturedPrefab: {fileID: 9204916731571370029, guid: ed6fc8a3a3743ac47a3927cb2cc2b23f, type: 3}
+  explosionForce: 300
+  explosionRadius: 2
+  fragmentRandomSpeed: 5
 --- !u!1 &1672421141939962841
 GameObject:
   m_ObjectHideFlags: 0
@@ -1011,6 +1026,7 @@ GameObject:
   - component: {fileID: 7503952150865296037}
   - component: {fileID: 6820401780767488937}
   - component: {fileID: 4902886345500950633}
+  - component: {fileID: 6094369193477815697}
   m_Layer: 7
   m_Name: Mech_Wings_Low
   m_TagString: Gun
@@ -1098,17 +1114,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf9ac7a8396ef7c4e8e63d8f9245db53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 100
-  deathEffectPrefab: {fileID: 1329845292236604, guid: 9c5ff7d2b94f1054c8d64df1504047f8, type: 3}
+  health: 50
   weaponDetachForce: 15
-  detachOnDeath: 0
-  fracturedPrefab: {fileID: 1074252060449763386, guid: eb1f4e3dead7b6547aaef87123950f5e, type: 3}
-  explosionForce: 300
-  explosionRadius: 2
+  detachOnDeath: 1
   bodyCleanupTime: 5
-  fragmentRandomSpeed: 5
   healthText: {fileID: 0}
   healthUiPosition: {x: 0, y: 1.6, z: 0}
+  knockbackSpeed: 0
+  knockbackDistance: 0
   generateHealthBar: 1
   deathSound: {fileID: 8300000, guid: 958408b32ccf3714ea02821877b0870c, type: 3}
   deathSoundVolume: 1
@@ -1156,6 +1169,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.010567849, y: 0.021205897, z: 0.02177264}
   m_Center: {x: -0.014006129, y: 0.00046292486, z: 0.0008387173}
+--- !u!114 &6094369193477815697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3101062936738315434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5acf13aea8e73654a978a7b361e05089, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deathEffectPrefab: {fileID: 1828176872806910, guid: 415004970e937ec409abe4855d9550e0, type: 3}
+  fracturedPrefab: {fileID: 1074252060449763386, guid: eb1f4e3dead7b6547aaef87123950f5e, type: 3}
+  explosionForce: 300
+  explosionRadius: 2
+  fragmentRandomSpeed: 5
 --- !u!1 &3446043781626915528
 GameObject:
   m_ObjectHideFlags: 0
@@ -1453,6 +1483,7 @@ GameObject:
   - component: {fileID: 2270549965720854744}
   - component: {fileID: 141195709621752994}
   - component: {fileID: 8646914873810143998}
+  - component: {fileID: 4963518703472744634}
   m_Layer: 7
   m_Name: Patrol_Enemy
   m_TagString: Enemy
@@ -1511,16 +1542,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 300
-  deathEffectPrefab: {fileID: 1828176872806910, guid: 415004970e937ec409abe4855d9550e0, type: 3}
   weaponDetachForce: 15
   detachOnDeath: 0
-  fracturedPrefab: {fileID: 1230333632948454127, guid: 0284ea516942f9b408d9835cb86f60bb, type: 3}
-  explosionForce: 300
-  explosionRadius: 2
   bodyCleanupTime: 5
-  fragmentRandomSpeed: 5
   healthText: {fileID: 0}
   healthUiPosition: {x: 0, y: 1.6, z: 0}
+  knockbackSpeed: 16
+  knockbackDistance: 30
   generateHealthBar: 1
   deathSound: {fileID: 8300000, guid: 1fd31868d68903d4f9e2c4a3b7ef98f3, type: 3}
   deathSoundVolume: 1
@@ -1566,6 +1594,23 @@ MonoBehaviour:
   alwaysFacePlayer: 1
   rotationSpeed: 50
   playerTransform: {fileID: 0}
+--- !u!114 &4963518703472744634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6385423206836043678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5acf13aea8e73654a978a7b361e05089, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deathEffectPrefab: {fileID: 1828176872806910, guid: 415004970e937ec409abe4855d9550e0, type: 3}
+  fracturedPrefab: {fileID: 1230333632948454127, guid: 0284ea516942f9b408d9835cb86f60bb, type: 3}
+  explosionForce: 300
+  explosionRadius: 2
+  fragmentRandomSpeed: 5
 --- !u!1 &7001895745572195320
 GameObject:
   m_ObjectHideFlags: 0

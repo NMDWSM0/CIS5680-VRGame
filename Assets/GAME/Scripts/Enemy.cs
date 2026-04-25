@@ -7,31 +7,15 @@ public class Enemy : MonoBehaviour, IEnemy
     [Tooltip("Starting health of the enemy.")]
     public float health = 100f;
 
-    [Header("Effects")]
-    [Tooltip("Particle effect to play when the enemy dies.")]
-    public GameObject deathEffectPrefab;
-
-    [Tooltip("Initial velocity given to shot-off weapons (only applies if detachOnDeath is true).")]
+    [Header("Death Physics")]
+    [Tooltip("Initial velocity given to shot-off weapons or fragments (only applies if detachOnDeath is true).")]
     public float weaponDetachForce = 15f;
 
-    [Tooltip("If true, this object will detach from its parent and fly off when it dies (useful for weapons that are separate Enemies).")]
+    [Tooltip("If true, this object will detach from its parent and fly off when it dies.")]
     public bool detachOnDeath = false;
-
-    [Header("Death Fragmentation")]
-    [Tooltip("The fragmented version of the enemy. If left null, the enemy will simply fall using physics.")]
-    public GameObject fracturedPrefab;
-
-    [Tooltip("Strength of the shatter explosion.")]
-    public float explosionForce = 300f;
-
-    [Tooltip("Radius of the shatter explosion.")]
-    public float explosionRadius = 2f;
 
     [Tooltip("How long fragments or dead bodies stay in the scene.")]
     public float bodyCleanupTime = 5.0f;
-
-    [Tooltip("Initial random velocity for each fragment when shattering.")]
-    public float fragmentRandomSpeed = 5.0f;
 
     [Header("UI Setup")]
     [Tooltip("Optional: Assign a 3D TextMeshPro object here. If left null, UI will be auto-generated.")]
@@ -40,6 +24,14 @@ public class Enemy : MonoBehaviour, IEnemy
     [Tooltip("The position of the generated health UI relative to the enemy.")]
     public Vector3 healthUiPosition = new Vector3(0, 1.6f, 0);
 
+    [Header("Hit Effects")]
+    [Tooltip("How fast the enemy moves back when hit.")]
+    public float knockbackSpeed = 8f;
+
+    [Tooltip("How far the enemy moves back when hit.")]
+    public float knockbackDistance = 0.6f;
+
+    [Header("UI Setup")]
     [Tooltip("Should it generate a physical health bar?")]
     public bool generateHealthBar = true;
 
@@ -53,6 +45,11 @@ public class Enemy : MonoBehaviour, IEnemy
     private float maxHealth;
     private Transform uiRoot; // A parent object to hold both the text and the bar
     private Transform healthBarForeground; // The green part of the bar that shrinks
+    private bool isDead = false;
+
+    // Knockback state
+    private Vector3 knockbackDir;
+    private float knockbackDistanceRemaining;
 
     private void Start()
     {
@@ -149,6 +146,21 @@ public class Enemy : MonoBehaviour, IEnemy
                 uiRoot.rotation = Quaternion.LookRotation(directionToFace);
             }
         }
+        transform.position += knockbackDir;
+
+        knockbackDir *= 0.3f;
+        // Apply knockback displacement after movement scripts (Update) have finished
+        // if (true||knockbackDistanceRemaining > 0)
+        // {
+        //     float step = knockbackSpeed * Time.deltaTime;
+
+        //     // Clamp step to avoid overshooting the target distance
+        //     if (step > knockbackDistanceRemaining)
+        //         step = knockbackDistanceRemaining;
+
+        //     transform.position += knockbackDir;
+        //     knockbackDistanceRemaining -= step;
+        // }
     }
 
     /// <summary>
@@ -163,6 +175,13 @@ public class Enemy : MonoBehaviour, IEnemy
 
         float realDamage = Mathf.Max(prevHealth - health, 0);
         Debug.Log($"Enemy '{gameObject.name}' took {realDamage} damage! Remaining health: {health}");
+
+        // Apply knockback if still alive
+        if (health > 0 && Camera.main != null)
+        {
+            knockbackDir = transform.position.normalized / Vector3.Magnitude(transform.position)*20.0f;
+            knockbackDistanceRemaining = knockbackDistance;
+        }
 
         UpdateHealthUI();
 
@@ -236,13 +255,13 @@ public class Enemy : MonoBehaviour, IEnemy
     /// </summary>
     private void Death()
     {
-        // 1. Play death particle effect if assigned
-        if (deathEffectPrefab != null)
-        {
-            Instantiate(deathEffectPrefab, transform.position, transform.rotation);
-        }
+        if (isDead) return;
+        isDead = true;
 
-        // 2. Play death sound
+        // Broadcast that the enemy is dead so other components (like EnemyShooter) can react
+        SendMessage("OnEnemyDead", SendMessageOptions.DontRequireReceiver);
+
+        // 1. Play death sound
         if (deathSound != null)
         {
             // We use PlayClipAtPoint because the enemy object is about to be destroyed.
@@ -254,9 +273,10 @@ public class Enemy : MonoBehaviour, IEnemy
         if (uiRoot != null) uiRoot.gameObject.SetActive(false);
 
         // 3. Handle Shatter or Physics Fall
-        if (fracturedPrefab != null)
+        EnemyExplodeBehavior explodeBehavior = GetComponent<EnemyExplodeBehavior>();
+        if (explodeBehavior != null && explodeBehavior.ShouldExplode())
         {
-            Shatter();
+            explodeBehavior.Explode(bodyCleanupTime, weaponDetachForce, detachOnDeath);
         }
         else
         {
@@ -273,57 +293,6 @@ public class Enemy : MonoBehaviour, IEnemy
         }
     }
 
-    private void Shatter()
-    {
-        Debug.Log($"Enemy '{gameObject.name}' shattered! Swapping to fragments...");
-
-        // Instantiate the fractured prefab
-        GameObject fragments = Instantiate(fracturedPrefab, transform.position, transform.rotation);
-        
-        // Match the scale if the enemy was scaled
-        fragments.transform.localScale = transform.localScale;
-
-        // Get all children first because we will be detaching them
-        Transform[] pieces = fragments.GetComponentsInChildren<Transform>();
-
-        // Traverse all child objects to ensure they have Rigidbodies and apply physics
-        foreach (Transform piece in pieces)
-        {
-            if (piece == fragments.transform || piece == null) continue; // Skip the root object
-
-            Rigidbody rb = piece.GetComponent<Rigidbody>();
-            if (rb == null)
-            {
-                rb = piece.gameObject.AddComponent<Rigidbody>();
-            }
-            
-            rb.useGravity = true;
-
-            // 1. Detach from the fragments root to make it independent
-            piece.SetParent(null);
-
-            // 2. Generate a random velocity and torque
-            rb.velocity = Random.insideUnitSphere * fragmentRandomSpeed;
-            rb.AddTorque(Random.insideUnitSphere * fragmentRandomSpeed, ForceMode.Impulse);
-
-            if (detachOnDeath)
-            {
-                ApplyDetachPhysics(rb); // Give it the initial fly-off momentum
-            }
-            
-            // Apply the main explosion force
-            rb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
-
-            // 3. Since the piece is now detached, we must destroy it individually after the cleanup time
-            Destroy(piece.gameObject, bodyCleanupTime);
-        }
-
-        // The root fragments object is now empty, destroy it
-        Destroy(fragments);
-
-        // Destroy the main enemy object immediately
-        Destroy(gameObject);
-    }
 
     private void FallOver()
     {

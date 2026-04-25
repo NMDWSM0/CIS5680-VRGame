@@ -149,4 +149,14 @@ public class EnemyShooter : MonoBehaviour
             rb.velocity = directionToPlayer * bulletSpeed;
         }
     }
+
+    /// <summary>
+    /// Called via SendMessage from the Enemy script when it dies.
+    /// </summary>
+    public void OnEnemyDead()
+    {
+        // Stop the ShootingRoutine immediately
+        StopAllCoroutines();
+        isShooting = false;
+    }
 }

@@ -7,8 +7,29 @@ using System.Collections;
 /// </summary>
 public class SuicideDrone : MonoBehaviour, IEnemy
 {
-    public enum DroneState { Idle, Warning, Charging, Exploded }
+    public enum DroneState { Flyover, Idle, Warning, Charging, Exploded }
     
+    [Header("Flyover Settings")]
+    [Tooltip("Should the drone perform flyovers before attacking?")]
+    public bool performFlyover = true;
+
+    [Tooltip("How many times the drone will fly over the player.")]
+    public int flyoverCount = 2;
+
+    [Tooltip("Speed during the flyover phase.")]
+    public float flyoverSpeed = 12f;
+
+    [Tooltip("Height above the player's head during flyover.")]
+    public float flyoverHeight = 4f;
+
+    [Tooltip("Distance past the player to reach before turning around.")]
+    public float flyoverDistance = 15f;
+    
+    [Tooltip("How fast the drone turns during flyover. Lower values create wider, longer curves (acting as a delay).")]
+    public float flyoverTurnSpeed = 2.5f;
+    
+    private int completedFlyovers = 0;
+    private Vector3 flyoverTargetPosition;
     [Header("Detection & Warning")]
     [Tooltip("Range at which the drone notices the player and starts the alarm.")]
     public float detectionRange = 12f;
@@ -65,24 +86,6 @@ public class SuicideDrone : MonoBehaviour, IEnemy
         baseEnemyComponent = GetComponent<Enemy>();
         currentSpeed = startSpeed;
 
-        // // --- 1. Fix Collision Issues ---
-        // // Every collision requires at least one Rigidbody. We add/configure it here.
-        // Rigidbody rb = GetComponent<Rigidbody>();
-        // if (rb == null) rb = gameObject.AddComponent<Rigidbody>();
-        
-        // // We set to Kinematic because we move via transform, but it allows trigger/collision msgs.
-        // rb.isKinematic = true; 
-        // // ContinuousSpeculative is best for kinematic objects that might move fast.
-        // rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-
-        // // Ensure there is a collider
-        // if (GetComponent<Collider>() == null)
-        // {
-        //     Debug.LogWarning($"SuicideDrone: No collider found on {gameObject.name}. Adding a SphereCollider automatically.");
-        //     gameObject.AddComponent<SphereCollider>();
-        // }
-
-        // --- 2. Initialize AudioSource for Alarm ---
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
@@ -91,6 +94,16 @@ public class SuicideDrone : MonoBehaviour, IEnemy
         
         audioSource.spatialBlend = 1.0f; // Ensure it's 3D sound
         audioSource.playOnAwake = false;
+
+        if (performFlyover)
+        {
+            currentState = DroneState.Flyover;
+            SetNewFlyoverTarget();
+        }
+        else
+        {
+            currentState = DroneState.Idle;
+        }
     }
 
     private void Update()
@@ -101,10 +114,24 @@ public class SuicideDrone : MonoBehaviour, IEnemy
 
         switch (currentState)
         {
+            case DroneState.Flyover:
+                PerformFlyover();
+                break;
+
             case DroneState.Idle:
                 if (distance <= detectionRange)
                 {
                     StartCoroutine(WarningRoutine());
+                }
+                break;
+
+            case DroneState.Warning:
+                // Smoothly track the player during the alarm phase
+                Vector3 warningDirection = (player.position - transform.position).normalized;
+                if (warningDirection != Vector3.zero)
+                {
+                    Quaternion targetRot = Quaternion.LookRotation(warningDirection);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
                 }
                 break;
 
@@ -123,8 +150,8 @@ public class SuicideDrone : MonoBehaviour, IEnemy
 
         Debug.Log($"<color=red>SuicideDrone:</color> I was hit! Current state: {currentState}");
 
-        // React to being shot: if idle, skip the wait and prepare for attack
-        if (currentState == DroneState.Idle)
+        // React to being shot: if idle or flyover, skip the wait and prepare for attack
+        if (currentState == DroneState.Idle || currentState == DroneState.Flyover)
         {
             StopAllCoroutines();
             StartCoroutine(WarningRoutine());
@@ -157,6 +184,7 @@ public class SuicideDrone : MonoBehaviour, IEnemy
     private IEnumerator WarningRoutine()
     {
         currentState = DroneState.Warning;
+
         Debug.Log($"<color=red>SuicideDrone:</color> {gameObject.name} is locking on! WARNING started.");
 
         // Play alarm
@@ -201,6 +229,55 @@ public class SuicideDrone : MonoBehaviour, IEnemy
 
         // 3. Move forward in the current rotation
         transform.position += transform.forward * currentSpeed * Time.deltaTime;
+    }
+
+    private void SetNewFlyoverTarget()
+    {
+        if (player == null) return;
+
+        // Direction from drone to player (ignoring Y to keep it horizontal)
+        Vector3 dirToPlayer = player.position - transform.position;
+        dirToPlayer.y = 0;
+        if (dirToPlayer.sqrMagnitude < 0.01f) 
+            dirToPlayer = transform.forward;
+        dirToPlayer.Normalize();
+
+        // Target point is past the player
+        flyoverTargetPosition = player.position + dirToPlayer * flyoverDistance;
+        flyoverTargetPosition.y = player.position.y + flyoverHeight;
+    }
+
+    private void PerformFlyover()
+    {
+        float distanceToTarget = Vector3.Distance(transform.position, flyoverTargetPosition);
+        
+        // If close enough to the target, count as one flyover and turn around
+        if (distanceToTarget < 3f)
+        {
+            completedFlyovers++;
+            if (completedFlyovers >= flyoverCount)
+            {
+                // Finished flyovers, proceed directly to warning and charging
+                StartCoroutine(WarningRoutine());
+                return;
+            }
+            else
+            {
+                SetNewFlyoverTarget();
+            }
+        }
+
+        // Move towards flyover target smoothly to create a curve
+        Vector3 direction = (flyoverTargetPosition - transform.position).normalized;
+        if (direction != Vector3.zero)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(direction);
+            // Use flyoverTurnSpeed for wider curves during the flyover phase
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, flyoverTurnSpeed * Time.deltaTime);
+        }
+        
+        // Keep moving forward continuously
+        transform.position += transform.forward * flyoverSpeed * Time.deltaTime;
     }
 
     // Handles impact with the player or obstacles

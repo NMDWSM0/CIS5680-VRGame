@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5413606668263348154}
   - component: {fileID: -5111200620411660468}
   - component: {fileID: 5758045836505103364}
+  - component: {fileID: 2742361527457201793}
   m_Layer: 7
   m_Name: Banzai_Drone
   m_TagString: Enemy
@@ -98,16 +99,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 100
-  deathEffectPrefab: {fileID: 1828176872806910, guid: 415004970e937ec409abe4855d9550e0, type: 3}
   weaponDetachForce: 15
   detachOnDeath: 0
-  fracturedPrefab: {fileID: 919132149155446097, guid: 668c80742dbc5514cb776329f69f5432, type: 3}
-  explosionForce: 300
-  explosionRadius: 2
   bodyCleanupTime: 5
-  fragmentRandomSpeed: 5
   healthText: {fileID: 0}
   healthUiPosition: {x: 0, y: 1.6, z: 0}
+  knockbackSpeed: 8
+  knockbackDistance: 0.6
   generateHealthBar: 1
   deathSound: {fileID: 0}
   deathSoundVolume: 1
@@ -144,18 +142,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc4c4d9554493b945a53a4aed5e75d97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  performFlyover: 1
+  flyoverCount: 2
+  flyoverSpeed: 3
+  flyoverHeight: 4
+  flyoverDistance: 15
+  flyoverTurnSpeed: 2.5
   detectionRange: 30
   alarmDuration: 2.5
   alarmSound: {fileID: 8300000, guid: df790d2838abe5a4089b5bed3f230558, type: 3}
   alarmVolume: 1
-  startSpeed: 0.1
-  maxSpeed: 0.9
-  acceleration: 0.2
+  startSpeed: 3
+  maxSpeed: 7
+  acceleration: 0.4
   rotationSpeed: 8
   impactDamage: 20
   playerTag: Player
   explosionSound: {fileID: 8300000, guid: f9eb44b85c96be5429737d4dcadbfa3b, type: 3}
   explosionVolume: 1
+--- !u!114 &2742361527457201793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8681164994325861681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5acf13aea8e73654a978a7b361e05089, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dealsAreaDamage: 0
+  areaDamageAmount: 50
+  areaDamageRadius: 5
+  deathEffectPrefab: {fileID: 1828176872806910, guid: 415004970e937ec409abe4855d9550e0, type: 3}
+  fracturedPrefab: {fileID: 5469229956778509945, guid: 1a4463f0c5db9a14b8e3743284132f78, type: 3}
+  explosionForce: 300
+  explosionRadius: 2
+  fragmentRandomSpeed: 5
 --- !u!1001 &3033010919814087666
 PrefabInstance:
   m_ObjectHideFlags: 0

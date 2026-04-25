@@ -8,6 +8,9 @@ public class EnemyManager : MonoBehaviour
     [Tooltip("Add enemy prefabs here. A random one will be chosen for each spawn.")]
     public GameObject[] enemyPrefabs;
 
+    [Header("Bomb Prefab")]
+    public GameObject bombPrefab;
+
     private int currentWave = 0;
     
     private class ActiveGroupState
@@ -116,6 +119,19 @@ public class EnemyManager : MonoBehaviour
             activeGroups.Add(new ActiveGroupState { config = group });
         }
         
+        if (bombPrefab != null)
+        {
+            Transform playerTransform = Camera.main != null ? Camera.main.transform : transform;
+            for (int i = 0; i < 5; i++)
+            {
+                Vector3 spawnPosition = playerTransform.position;
+                spawnPosition.x += Random.Range(-15f, 15f);
+                spawnPosition.y = 0f; // Ensure they spawn at ground level
+                spawnPosition.z += Random.Range(-15f, 15f);
+                Instantiate(bombPrefab, spawnPosition, Quaternion.identity);
+            }
+        }
+
         isWaveActive = true;
     }
 
