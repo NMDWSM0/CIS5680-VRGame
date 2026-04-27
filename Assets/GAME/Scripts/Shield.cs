@@ -9,6 +9,20 @@ public class Shield : MonoBehaviour
     [Tooltip("Speed of the reflected bullet.")]
     public float reflectSpeed = 20f;
 
+    [Header("VFX Settings")]
+    [Tooltip("The power-up particle (e.g. det_01_ad) to show when ammo is full.")]
+    public GameObject powerParticle;
+
+    private void Update()
+    {
+        if (powerParticle == null) return;
+
+        PlayerStatus ps = GetComponentInParent<PlayerStatus>();
+        bool full = ps != null && ps.ammo >= ps.maxAmmo;
+        if (powerParticle.activeSelf != full)
+            powerParticle.SetActive(full);
+    }
+
     /// <summary>
     /// Processes a hit from an EnemyBullet, reflecting it if ammo is full.
     /// </summary>
