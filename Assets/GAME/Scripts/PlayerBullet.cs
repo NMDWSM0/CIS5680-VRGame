@@ -22,7 +22,8 @@ public class PlayerBullet : MonoBehaviour
             IEnemy enemy = other.gameObject.GetComponentInParent<IEnemy>();
             if (enemy != null)
             {
-                enemy.Hit(damage, other.gameObject);
+                Vector3 hitPoint = other.ClosestPoint(transform.position);
+                enemy.Hit(damage, other.gameObject, hitPoint);
             }
             else
             {

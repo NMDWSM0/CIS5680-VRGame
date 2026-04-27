@@ -17,6 +17,9 @@ public class Enemy : MonoBehaviour, IEnemy
     [Tooltip("How long fragments or dead bodies stay in the scene.")]
     public float bodyCleanupTime = 5.0f;
 
+    [Tooltip("If true, the enemy will fall and explode upon hitting the ground instead of exploding immediately.")]
+    public bool fallAndExplode = true;
+
     [Header("UI Setup")]
     [Tooltip("Optional: Assign a 3D TextMeshPro object here. If left null, UI will be auto-generated.")]
     public TextMeshPro healthText;
@@ -24,12 +27,6 @@ public class Enemy : MonoBehaviour, IEnemy
     [Tooltip("The position of the generated health UI relative to the enemy.")]
     public Vector3 healthUiPosition = new Vector3(0, 1.6f, 0);
 
-    [Header("Hit Effects")]
-    [Tooltip("How fast the enemy moves back when hit.")]
-    public float knockbackSpeed = 8f;
-
-    [Tooltip("How far the enemy moves back when hit.")]
-    public float knockbackDistance = 0.6f;
 
     [Header("UI Setup")]
     [Tooltip("Should it generate a physical health bar?")]
@@ -42,14 +39,42 @@ public class Enemy : MonoBehaviour, IEnemy
     [Tooltip("Volume of the death sound.")]
     [Range(0, 1)] public float deathSoundVolume = 1.0f;
 
+    [Header("Drops")]
+    [Tooltip("Prefab for the ammo replenish projectile.")]
+    public GameObject ammoReplenishPrefab;
+
+    [Tooltip("How many ammo replenish projectiles to spawn on death.")]
+    public int ammoReplenishCount = 3;
+
+    [Header("Hit Effects")]
+    [Tooltip("Strength of the knockback impulse applied when hit.")]
+    public float knockbackImpulse = 5f;
+
+    [Tooltip("Strength of the random rotation impulse applied when hit.")]
+    public float hitTorqueImpulse = 5f;
+
+    [Header("Knockback & Movement")]
+    [Tooltip("The target transform the enemy tries to stay aligned with. If null, it will create one automatically.")]
+    public Transform targetTransform;
+
+    [Tooltip("How stiff the position spring is.")]
+    public float positionSpringStiffness = 10f;
+
+    [Tooltip("How much damping is applied to the position spring.")]
+    public float positionDamping = 1f;
+
+    [Tooltip("How stiff the rotation spring is.")]
+    public float rotationSpringStiffness = 10f;
+
+    [Tooltip("How much damping is applied to the rotation spring.")]
+    public float rotationDamping = 1f;
+
     private float maxHealth;
     private Transform uiRoot; // A parent object to hold both the text and the bar
     private Transform healthBarForeground; // The green part of the bar that shrinks
     private bool isDead = false;
-
-    // Knockback state
-    private Vector3 knockbackDir;
-    private float knockbackDistanceRemaining;
+    private bool isFalling = false;
+    private Rigidbody rb;
 
     private void Start()
     {
@@ -132,11 +157,82 @@ public class Enemy : MonoBehaviour, IEnemy
         }
 
         UpdateHealthUI();
+
+        // Initialize Rigidbody for physics-based knockback
+        rb = GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+            rb.useGravity = false; // Stay in the air
+            rb.drag = 1f; // Some air resistance
+            rb.angularDrag = 1f;
+        }
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+        // Initialize target transform if not provided
+        if (targetTransform == null)
+        {
+            GameObject targetObj = new GameObject(gameObject.name + "_MoveTarget");
+            targetObj.transform.position = transform.position;
+            targetObj.transform.rotation = transform.rotation;
+            
+            if (transform.parent != null)
+                targetObj.transform.SetParent(transform.parent);
+                
+            targetTransform = targetObj.transform;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        // 0. Handle movement toward targetTransform using forces (not direct position manipulation)
+        if (targetTransform != null && !isDead)
+        {
+            // Position "Spring": Apply force to pull towards target
+            Vector3 posError = targetTransform.position - transform.position;
+            Vector3 currentVelocity = rb.velocity;
+
+            // TODO calculate force to minimize posError and prevent overshooting
+            // 1. 计算弹簧力 (Proportional term)：距离越远，拉力越大
+            Vector3 springForce = posError * positionSpringStiffness;
+            
+            // 2. 计算阻尼力 (Derivative term)：速度越快，反向阻力越大（这就是防止过冲的核心）
+            // 注意：如果 targetTransform 也是一个正在移动的刚体，这里最好使用相对速度 (rb.velocity - targetRb.velocity)
+            Vector3 dampingForce = -currentVelocity * positionDamping;
+            
+            // 3. 应用合力
+            // 使用 ForceMode.Acceleration 忽略质量影响，这样调节参数时更直观
+            rb.AddForce(springForce + dampingForce, ForceMode.Acceleration);
+
+            // --- [旋转控制部分] ---
+            // Rotation "Spring": Apply torque to align with target rotation
+            Quaternion rotError = targetTransform.rotation * Quaternion.Inverse(transform.rotation);
+            rotError.ToAngleAxis(out float angle, out Vector3 axis);
+            
+            if (angle > 180) angle -= 360; // Get the shortest path
+            
+            // 确保 Axis 是有效的
+            if (!float.IsNaN(axis.x) && !float.IsInfinity(axis.x))
+            {
+                // 1. 计算旋转弹簧扭矩 (Proportional term)
+                // Unity 的角速度是基于弧度(Radians)的，因此我们将角度(Degrees)转为弧度，这样调参手感与位置完全一致
+                Vector3 angularError = axis.normalized * (angle * Mathf.Deg2Rad);
+                Vector3 springTorque = angularError * rotationSpringStiffness;
+
+                // 2. 计算旋转阻尼扭矩 (Derivative term)
+                // 阻力方向与当前角速度方向相反
+                Vector3 dampingTorque = -rb.angularVelocity * rotationDamping;
+
+                // 3. 施加合力矩
+                // 当角度极小（如小于 0.1度）时，弹簧扭矩几乎为0，此时阻尼扭矩会主导，让物体平稳停下
+                rb.AddTorque(springTorque + dampingTorque, ForceMode.Acceleration);
+            }
+        }
     }
 
     private void Update()
     {
-        // Rotate the entire UI block to face the physical player coordinates
+        // 1. Rotate the entire UI block to face the physical player coordinates
         if (uiRoot != null && Camera.main != null)
         {
             Vector3 directionToFace = uiRoot.position - Camera.main.transform.position;
@@ -146,27 +242,39 @@ public class Enemy : MonoBehaviour, IEnemy
                 uiRoot.rotation = Quaternion.LookRotation(directionToFace);
             }
         }
-        transform.position += knockbackDir;
+    }
 
-        knockbackDir *= 0.3f;
-        // Apply knockback displacement after movement scripts (Update) have finished
-        // if (true||knockbackDistanceRemaining > 0)
-        // {
-        //     float step = knockbackSpeed * Time.deltaTime;
+    private void OnCollisionEnter(Collision collision)
+    {
+        // If we are in the falling-death state, trigger the explosion on any impact
+        if (isDead && isFalling)
+        {
+            TriggerGroundExplosion();
+        }
+    }
 
-        //     // Clamp step to avoid overshooting the target distance
-        //     if (step > knockbackDistanceRemaining)
-        //         step = knockbackDistanceRemaining;
+    private void TriggerGroundExplosion()
+    {
+        isFalling = false;
 
-        //     transform.position += knockbackDir;
-        //     knockbackDistanceRemaining -= step;
-        // }
+        // Trigger visual/physical explosion via EnemyExplodeBehavior if available
+        EnemyExplodeBehavior explodeBehavior = GetComponent<EnemyExplodeBehavior>();
+        if (explodeBehavior != null && explodeBehavior.ShouldExplode())
+        {
+            // Now only perform the shatter step (particles were played on death)
+            explodeBehavior.Shatter(bodyCleanupTime, weaponDetachForce, detachOnDeath);
+        }
+        else
+        {
+            // Fallback destruction
+            Destroy(gameObject);
+        }
     }
 
     /// <summary>
     /// Called when the laser or bullet hits this enemy.
     /// </summary>
-    public float Hit(float damage, GameObject hitPart = null)
+    public float Hit(float damage, GameObject hitPart = null, Vector3 hitPoint = default)
     {
         float prevHealth = health;
 
@@ -177,10 +285,16 @@ public class Enemy : MonoBehaviour, IEnemy
         Debug.Log($"Enemy '{gameObject.name}' took {realDamage} damage! Remaining health: {health}");
 
         // Apply knockback if still alive
-        if (health > 0 && Camera.main != null)
+        if (health > 0 && Camera.main != null && rb != null)
         {
-            knockbackDir = transform.position.normalized / Vector3.Magnitude(transform.position)*20.0f;
-            knockbackDistanceRemaining = knockbackDistance;
+            // Calculate a knockback vector (away from player)
+            Vector3 directionFromPlayer = (transform.position - Camera.main.transform.position).normalized;
+            
+            // 1. Apply a direct linear impulse for consistent push-back
+            rb.AddForce(directionFromPlayer * knockbackImpulse, ForceMode.Impulse);
+
+            // 2. Apply a random torque impulse for more dynamic visual impact
+            rb.AddTorque(Random.onUnitSphere * hitTorqueImpulse, ForceMode.Impulse);
         }
 
         UpdateHealthUI();
@@ -264,32 +378,83 @@ public class Enemy : MonoBehaviour, IEnemy
         // 1. Play death sound
         if (deathSound != null)
         {
-            // We use PlayClipAtPoint because the enemy object is about to be destroyed.
-            // This creates a temporary audio object in world space.
             AudioSource.PlayClipAtPoint(deathSound, transform.position, deathSoundVolume);
         }
 
-        // 3. Hide health UI
+        // 2. Hide health UI
         if (uiRoot != null) uiRoot.gameObject.SetActive(false);
 
-        // 3. Handle Shatter or Physics Fall
+        // 3. Play death effects immediately
         EnemyExplodeBehavior explodeBehavior = GetComponent<EnemyExplodeBehavior>();
-        if (explodeBehavior != null && explodeBehavior.ShouldExplode())
+        if (explodeBehavior != null)
         {
-            explodeBehavior.Explode(bodyCleanupTime, weaponDetachForce, detachOnDeath);
+            explodeBehavior.PlayDeathEffect();
+        }
+
+        // 4. Handle Death Movement/Physics
+        targetTransform = null; // Stop trying to return to the target position
+        
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.useGravity = true;
+        }
+
+        if (fallAndExplode)
+        {
+            Debug.Log($"Enemy '{gameObject.name}' is falling to its doom...");
+            isFalling = true;
+
+            // Apply a random initial tumble for a more dramatic fall
+            if (rb != null)
+            {
+                rb.AddTorque(Random.onUnitSphere * hitTorqueImpulse * 2f, ForceMode.Impulse);
+            }
+
+            // Disable all other scripts (moving, shooting, etc.) so it's just a falling ragdoll
+            MonoBehaviour[] scripts = GetComponents<MonoBehaviour>();
+            foreach (var script in scripts)
+            {
+                if (script != this) script.enabled = false;
+            }
+
+            // Set all colliders to non-trigger so it hits the floor
+            foreach (Collider col in GetComponentsInChildren<Collider>())
+            {
+                col.isTrigger = false;
+            }
+            
+            // Clean up if it never hits the ground for some reason (e.g. falls into void)
+            Destroy(gameObject, bodyCleanupTime + 5f);
         }
         else
         {
-            FallOver();
+            // Standard immediate death behavior
+            if (explodeBehavior != null && explodeBehavior.ShouldExplode())
+            {
+                explodeBehavior.Shatter(bodyCleanupTime, weaponDetachForce, detachOnDeath);
+            }
+            else
+            {
+                FallOver();
+            }
         }
 
-        // 4. Handle Detachment (always detach on death to stop parent movement influence)
-        // If the object was shattered, it's already marked for destruction, but detaching helps if it persists for the rest of the frame.
-        // If it fell over, this prevents the parent from dragging the dead body.
+        // 4. Handle Detachment
         if (this != null && transform.parent != null)
         {
-            Debug.Log($"Enemy '{gameObject.name}' destroyed! Detaching from parent...");
             transform.SetParent(null);
+        }
+
+        // 5. Spawn ammo replenish
+        if (ammoReplenishPrefab != null)
+        {
+            for (int i = 0; i < ammoReplenishCount; i++)
+            {
+                // Spawn with a slight random offset so they don't overlap perfectly
+                Vector3 spawnOffset = Random.insideUnitSphere * 0.5f;
+                Instantiate(ammoReplenishPrefab, transform.position + spawnOffset, Quaternion.identity);
+            }
         }
     }
 

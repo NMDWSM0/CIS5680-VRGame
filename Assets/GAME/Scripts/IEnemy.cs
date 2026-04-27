@@ -13,5 +13,5 @@ public interface IEnemy
     /// <param name="damage">Base damage dealt.</param>
     /// <param name="hitPart">Optional: Specific part of the object that was hit.</param>
     /// <returns>The actual damage dealt after internal calculations.</returns>
-    float Hit(float damage, GameObject hitPart = null);
+    float Hit(float damage, GameObject hitPart = null, Vector3 hitPoint = default);
 }

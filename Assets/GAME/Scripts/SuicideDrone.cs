@@ -68,6 +68,10 @@ public class SuicideDrone : MonoBehaviour, IEnemy
 
     [Tooltip("Volume of the explosion sound.")]
     [Range(0, 1)] public float explosionVolume = 1f;
+    
+    [Header("Hit Effects (Drone)")]
+    [Tooltip("Strength of the random rotation impulse applied when hit.")]
+    public float hitRotationImpulse = 20f;
 
     private DroneState currentState = DroneState.Idle;
     private Transform player;
@@ -131,7 +135,14 @@ public class SuicideDrone : MonoBehaviour, IEnemy
                 if (warningDirection != Vector3.zero)
                 {
                     Quaternion targetRot = Quaternion.LookRotation(warningDirection);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+                    if (baseEnemyComponent != null && baseEnemyComponent.targetTransform != null)
+                    {
+                        baseEnemyComponent.targetTransform.rotation = Quaternion.Slerp(baseEnemyComponent.targetTransform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+                    }
                 }
                 break;
 
@@ -144,7 +155,7 @@ public class SuicideDrone : MonoBehaviour, IEnemy
     /// <summary>
     /// Implementation of IEnemy. Allows the drone to react when shot.
     /// </summary>
-    public float Hit(float damage, GameObject hitPart = null)
+    public float Hit(float damage, GameObject hitPart = null, Vector3 hitPoint = default)
     {
         if (currentState == DroneState.Exploded) return 0;
 
@@ -155,6 +166,13 @@ public class SuicideDrone : MonoBehaviour, IEnemy
         {
             StopAllCoroutines();
             StartCoroutine(WarningRoutine());
+        }
+
+        // Apply a random rotation jump to the drone
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.AddTorque(Random.onUnitSphere * hitRotationImpulse, ForceMode.Impulse);
         }
 
         // Forward damage to the main Enemy script to handle health/shattering
@@ -224,11 +242,25 @@ public class SuicideDrone : MonoBehaviour, IEnemy
         if (direction != Vector3.zero)
         {
             Quaternion targetRot = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+            if (baseEnemyComponent != null && baseEnemyComponent.targetTransform != null)
+            {
+                baseEnemyComponent.targetTransform.rotation = Quaternion.Slerp(baseEnemyComponent.targetTransform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
+            }
         }
 
         // 3. Move forward in the current rotation
-        transform.position += transform.forward * currentSpeed * Time.deltaTime;
+        if (baseEnemyComponent != null && baseEnemyComponent.targetTransform != null)
+        {
+            baseEnemyComponent.targetTransform.position += baseEnemyComponent.targetTransform.forward * currentSpeed * Time.deltaTime;
+        }
+        else
+        {
+            transform.position += transform.forward * currentSpeed * Time.deltaTime;
+        }
     }
 
     private void SetNewFlyoverTarget()
@@ -273,11 +305,25 @@ public class SuicideDrone : MonoBehaviour, IEnemy
         {
             Quaternion targetRot = Quaternion.LookRotation(direction);
             // Use flyoverTurnSpeed for wider curves during the flyover phase
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, flyoverTurnSpeed * Time.deltaTime);
+            if (baseEnemyComponent != null && baseEnemyComponent.targetTransform != null)
+            {
+                baseEnemyComponent.targetTransform.rotation = Quaternion.Slerp(baseEnemyComponent.targetTransform.rotation, targetRot, flyoverTurnSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, flyoverTurnSpeed * Time.deltaTime);
+            }
         }
         
         // Keep moving forward continuously
-        transform.position += transform.forward * flyoverSpeed * Time.deltaTime;
+        if (baseEnemyComponent != null && baseEnemyComponent.targetTransform != null)
+        {
+            baseEnemyComponent.targetTransform.position += baseEnemyComponent.targetTransform.forward * flyoverSpeed * Time.deltaTime;
+        }
+        else
+        {
+            transform.position += transform.forward * flyoverSpeed * Time.deltaTime;
+        }
     }
 
     // Handles impact with the player or obstacles

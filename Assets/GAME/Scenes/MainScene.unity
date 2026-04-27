@@ -468,63 +468,6 @@ MonoBehaviour:
   m_UseLocalSpace: 1
   m_AngleStabilization: 20
   m_PositionStabilization: 0.25
---- !u!1001 &376843192
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4220916535825723759, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_Name
-      value: PlayerBulletPulse
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 1.8104208
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 3.29
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.27786136
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7731745144428335468, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
 --- !u!4 &481668624 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2120814225652636547, guid: 086f096c81d632a44a2f803274421f25, type: 3}
@@ -761,7 +704,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1188460882}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
@@ -889,6 +832,10 @@ PrefabInstance:
     - target: {fileID: 970771838725575524, guid: 65eb6b98091a5734ba9d9ca871cef69a, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1273017728241610668, guid: 65eb6b98091a5734ba9d9ca871cef69a, type: 3}
+      propertyPath: m_RenderPostProcessing
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1502226682605275521, guid: 65eb6b98091a5734ba9d9ca871cef69a, type: 3}
       propertyPath: m_Layer
@@ -1584,6 +1531,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentFireMode: 1
   triggerAction: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  autoFire: 1
   rayInteractor: {fileID: 1052058342}
   laserPrefab: {fileID: 9016977922137134628, guid: c913fd3ed6792ee4e9e978e6c5b5bf43, type: 3}
   pulseBulletPrefab: {fileID: 4220916535825723759, guid: 5367c721858ff414d9dbe2914ccde7d6, type: 3}
@@ -2197,4 +2145,3 @@ SceneRoots:
   - {fileID: 1382227511}
   - {fileID: 519257835}
   - {fileID: 1188460884}
-  - {fileID: 376843192}

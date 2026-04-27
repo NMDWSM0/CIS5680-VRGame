@@ -22,6 +22,9 @@ public class EnemyShooter : MonoBehaviour
     [Tooltip("How much damage the bullet deals to the player.")]
     public float bulletDamage = 10f;
 
+    [Tooltip("Maximum angular velocity (degrees/sec magnitude) allowed to shoot. If spinning faster, firing is blocked.")]
+    public float maxAngularVelocity = 0.1f;
+
     [Header("Setup")]
     [Tooltip("Optional: Custom prefab for the bullet. If null, a primitive sphere is generated automatically.")]
     public GameObject customBulletPrefab;
@@ -29,14 +32,20 @@ public class EnemyShooter : MonoBehaviour
     [Tooltip("Where the bullets spawn. If empty, spawns at this enemy's center.")]
     public Transform[] firePoints;
 
+    [Tooltip("Optional: Prefab for the muzzle flash effect.")]
+    public GameObject muzzleFlashPrefab;
+
     [Tooltip("Audio to play when firing.")]
     public AudioSource audioSource;
-
+    public Enemy enemy;
     private Transform playerHead;
     private bool isShooting = false;
+    private Rigidbody rb;
 
     private void Start()
     {
+        rb = enemy.GetComponent<Rigidbody>();
+
         // Automatically try to find the player's Main Camera
         if (Camera.main != null)
         {
@@ -46,6 +55,22 @@ public class EnemyShooter : MonoBehaviour
         else
         {
             Debug.LogWarning("EnemyShooter: Could not find Camera.main! Shooting is offline.");
+        }
+    }
+
+    private void Update()
+    {
+        if (playerHead != null)
+        {
+            // Calculate direction to player's head
+            Vector3 direction = (playerHead.position - transform.position).normalized;
+            
+            if (direction != Vector3.zero)
+            {
+                // Quaternion.LookRotation with Vector3.up as the second parameter 
+                // ensures the Z-axis points at the player and the X-axis stays horizontal.
+                transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            }
         }
     }
 
@@ -78,6 +103,13 @@ public class EnemyShooter : MonoBehaviour
 
     private void ShootAtPlayer()
     {
+        Debug.Log("Angular velocity: " + rb.angularVelocity.magnitude);
+        // 0. Check if we are spinning too fast to aim/fire
+        if (rb != null && rb.angularVelocity.magnitude > maxAngularVelocity)
+        {
+            return;
+        }
+
         // 1. Filter out fire points that have been detached (no longer children of this enemy)
         Transform[] allPoints = firePoints != null && firePoints.Length > 0 ? firePoints : new Transform[] { transform };
         
@@ -103,6 +135,16 @@ public class EnemyShooter : MonoBehaviour
         // 3. Fire from all active points
         foreach (Transform spawnPoint in activePoints)
         {
+            // Spawn muzzle flash if provided
+            if (muzzleFlashPrefab != null)
+            {
+                // Instantiate at the muzzle position with its rotation
+                GameObject flash = Instantiate(muzzleFlashPrefab, spawnPoint.position, spawnPoint.rotation);
+                
+                // Parent it to the spawn point so it moves with the gun if it's tracking fast
+                flash.transform.SetParent(spawnPoint);
+            }
+
             // Calculate direction to the player's head securely
             Vector3 directionToPlayer = (playerHead.position - spawnPoint.position).normalized;
 

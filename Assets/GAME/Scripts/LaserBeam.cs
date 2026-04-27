@@ -133,7 +133,7 @@ public class LaserBeam : MonoBehaviour
                 {
                     // Deal full damage to the closest enemy, penetrationDamage percentage to others
                     float dmg = hitFirstEnemy ? (laserDamage * penetrationDamageMulti) : laserDamage;
-                    float realDamage = enemyScript.Hit(dmg, h.collider.gameObject);
+                    float realDamage = enemyScript.Hit(dmg, h.collider.gameObject, h.point);
                     hitFirstEnemy = true;
 
                     if (playerStatus != null)
@@ -181,7 +181,7 @@ public class LaserBeam : MonoBehaviour
                 IEnemy enemyScript = nearestValidHit.collider.GetComponentInParent<IEnemy>();
                 if (enemyScript != null)
                 {
-                    float realDamage = enemyScript.Hit(laserDamage, nearestValidHit.collider.gameObject);
+                    float realDamage = enemyScript.Hit(laserDamage, nearestValidHit.collider.gameObject, nearestValidHit.point);
                     if (playerStatus != null)
                     {
                         playerStatus.OnDamageDealt(realDamage);
