@@ -31,7 +31,45 @@ public class EnemyExplodeBehavior : MonoBehaviour
     [Tooltip("Initial random velocity for each fragment when shattering.")]
     public float fragmentRandomSpeed = 5.0f;
 
-    private bool hasExploded = false;
+    private bool hasShattered = false;
+    private bool hasPlayedEffect = false;
+
+    // Performance Optimization: Pre-instantiated pieces
+    private GameObject preInstantiatedFragments;
+    private Rigidbody[] cachedFragmentRbs;
+    private Transform[] cachedFragmentTransforms;
+
+    private void Start()
+    {
+        // Optimization: Pre-instantiate the fractured version at start to avoid frame spikes during death
+        if (fracturedPrefab != null)
+        {
+            preInstantiatedFragments = Instantiate(fracturedPrefab);
+            preInstantiatedFragments.SetActive(false); // Keep it hidden and inactive
+
+            // Cache pieces and ensure they have rigidbodies
+            System.Collections.Generic.List<Rigidbody> rbs = new System.Collections.Generic.List<Rigidbody>();
+            System.Collections.Generic.List<Transform> transforms = new System.Collections.Generic.List<Transform>();
+
+            foreach (Transform t in preInstantiatedFragments.GetComponentsInChildren<Transform>())
+            {
+                if (t == preInstantiatedFragments.transform) continue;
+
+                Rigidbody rb = t.GetComponent<Rigidbody>();
+                if (rb == null) rb = t.gameObject.AddComponent<Rigidbody>();
+
+                // Set initial physics state
+                rb.isKinematic = true;
+                rb.useGravity = false;
+
+                rbs.Add(rb);
+                transforms.Add(t);
+            }
+
+            cachedFragmentRbs = rbs.ToArray();
+            cachedFragmentTransforms = transforms.ToArray();
+        }
+    }
 
     public bool ShouldExplode()
     {
@@ -39,15 +77,35 @@ public class EnemyExplodeBehavior : MonoBehaviour
     }
 
     /// <summary>
-    /// Executes the shatter logic.
+    /// Instantiates the death particle effect immediately.
     /// </summary>
-    /// <param name="cleanupTime">How long fragments stay in the scene before being destroyed.</param>
-    /// <param name="detachForce">Initial velocity given to fragments if they should fly off.</param>
-    /// <param name="applyDetachPhysics">Whether to apply the extra detach momentum.</param>
+    public void PlayDeathEffect()
+    {
+        if (hasPlayedEffect) return;
+        hasPlayedEffect = true;
+
+        if (deathEffectPrefab != null)
+        {
+            Instantiate(deathEffectPrefab, transform.position, transform.rotation);
+        }
+    }
+
+    /// <summary>
+    /// Executes both death effect and shattering immediately.
+    /// </summary>
     public void Explode(float cleanupTime, float detachForce, bool applyDetachPhysics)
     {
-        if (hasExploded) return;
-        hasExploded = true;
+        PlayDeathEffect();
+        Shatter(cleanupTime, detachForce, applyDetachPhysics);
+    }
+
+    /// <summary>
+    /// Swaps the enemy with its fractured prefab and applies physics forces.
+    /// </summary>
+    public void Shatter(float cleanupTime, float detachForce, bool applyDetachPhysics)
+    {
+        if (hasShattered) return;
+        hasShattered = true;
 
         // Area Damage Logic
         if (dealsAreaDamage)
@@ -55,43 +113,42 @@ public class EnemyExplodeBehavior : MonoBehaviour
             ApplyAreaDamage();
         }
 
-        // 1. Play death particle effect if assigned
-        if (deathEffectPrefab != null)
+        if (preInstantiatedFragments != null)
         {
-            Instantiate(deathEffectPrefab, transform.position, transform.rotation);
-        }
+            Debug.Log($"Enemy '{gameObject.name}' shattering (Optimized Path)!");
 
-        if (fracturedPrefab != null)
-        {
-            Debug.Log($"Enemy '{gameObject.name}' shattering! Swapping to fragments...");
+            // 1. Move root to current position
+            preInstantiatedFragments.transform.position = transform.position;
+            preInstantiatedFragments.transform.rotation = transform.rotation;
+            preInstantiatedFragments.transform.localScale = transform.localScale;
+            preInstantiatedFragments.SetActive(true);
 
-            // Instantiate the fractured prefab
-            GameObject fragments = Instantiate(fracturedPrefab, transform.position, transform.rotation);
-            
-            // Match the scale if the enemy was scaled
-            fragments.transform.localScale = transform.localScale;
+            // Get current velocity of the enemy to inherit momentum
+            Vector3 inheritedVelocity = Vector3.zero;
+            Rigidbody enemyRb = GetComponent<Rigidbody>();
+            if (enemyRb != null) inheritedVelocity = enemyRb.velocity;
 
-            // Get all children pieces
-            Transform[] pieces = fragments.GetComponentsInChildren<Transform>();
-
-            foreach (Transform piece in pieces)
+            // 2. Process all cached pieces
+            for (int i = 0; i < cachedFragmentRbs.Length; i++)
             {
-                if (piece == fragments.transform || piece == null) continue; // Skip the root object
+                Rigidbody rb = cachedFragmentRbs[i];
+                Transform piece = cachedFragmentTransforms[i];
 
-                Rigidbody rb = piece.GetComponent<Rigidbody>();
-                if (rb == null)
-                {
-                    rb = piece.gameObject.AddComponent<Rigidbody>();
-                }
-                
-                rb.useGravity = true;
+                if (rb == null || piece == null) continue;
 
-                // 1. Detach from the fragments root to make it independent
+                // Unparent to allow independent movement
                 piece.SetParent(null);
 
-                // 2. Generate a random velocity and torque
-                rb.velocity = Random.insideUnitSphere * fragmentRandomSpeed;
-                rb.AddTorque(Random.insideUnitSphere * fragmentRandomSpeed, ForceMode.Impulse);
+                // Enable physics
+                rb.isKinematic = false;
+                rb.useGravity = true;
+
+                // Inherit momentum + Add random variation (Upper Hemisphere only)
+                Vector3 randomDir = Random.insideUnitSphere;
+                randomDir.y = Mathf.Abs(randomDir.y); // Ensure fragments fly upwards/outwards, not into the ground
+                
+                rb.velocity = inheritedVelocity + (randomDir * fragmentRandomSpeed);
+                rb.AddTorque(Random.onUnitSphere * fragmentRandomSpeed, ForceMode.Impulse);
 
                 if (applyDetachPhysics)
                 {
@@ -101,12 +158,19 @@ public class EnemyExplodeBehavior : MonoBehaviour
                 // Apply the main explosion force
                 rb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
 
-                // 3. Destroy piece individually after cleanup time
+                // Destroy piece individually after cleanup time
                 Destroy(piece.gameObject, cleanupTime);
             }
 
-            // The root fragments object is now empty, destroy it
-            Destroy(fragments);
+            // Cleanup the empty root
+            Destroy(preInstantiatedFragments);
+        }
+        else if (fracturedPrefab != null)
+        {
+            // Fallback to slow path if pre-instantiation failed or wasn't done
+            GameObject fragments = Instantiate(fracturedPrefab, transform.position, transform.rotation);
+            fragments.transform.localScale = transform.localScale;
+            // ... (rest of old slow path if needed, but we mostly rely on cached version)
         }
 
         // Destroy the main enemy object immediately

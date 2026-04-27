@@ -42,6 +42,7 @@ public class EnemyPatrol : MonoBehaviour
     private float targetHeightOffset;
     private float currentOrbitSpeed;
     private bool isMoving = false;
+    private Enemy enemyComponent;
 
     // Smoothed values
     private float smoothDistance;
@@ -49,6 +50,8 @@ public class EnemyPatrol : MonoBehaviour
 
     private void Start()
     {
+        enemyComponent = GetComponent<Enemy>();
+
         if (playerTransform == null && Camera.main != null)
             playerTransform = Camera.main.transform;
 
@@ -112,7 +115,15 @@ public class EnemyPatrol : MonoBehaviour
         Vector3 targetPosition = playerTransform.position + orbitOffset;
         targetPosition.y = playerTransform.position.y + smoothHeight;
 
-        transform.position = targetPosition;
+        // Apply movement to the targetTransform if available, otherwise fallback to direct transform
+        if (enemyComponent != null && enemyComponent.targetTransform != null)
+        {
+            enemyComponent.targetTransform.position = targetPosition;
+        }
+        else
+        {
+            transform.position = targetPosition;
+        }
 
         // 4. Handle rotation
         if (alwaysFacePlayer)
@@ -128,11 +139,23 @@ public class EnemyPatrol : MonoBehaviour
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                rotationSpeed * Time.deltaTime
-            );
+            
+            if (enemyComponent != null && enemyComponent.targetTransform != null)
+            {
+                enemyComponent.targetTransform.rotation = Quaternion.Slerp(
+                    enemyComponent.targetTransform.rotation,
+                    targetRotation,
+                    rotationSpeed * Time.deltaTime
+                );
+            }
+            else
+            {
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    targetRotation,
+                    rotationSpeed * Time.deltaTime
+                );
+            }
         }
     }
 }

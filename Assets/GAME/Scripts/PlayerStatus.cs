@@ -65,9 +65,17 @@ public class PlayerStatus : MonoBehaviour
     public void AddAmmoFromDamage(float damageAbsorbed)
     {
         float ammoGained = damageAbsorbed * ammoEfficiency * 0.5f;
-        ammo = Mathf.Clamp(ammo + ammoGained, 0f, maxAmmo);
+        AddAmmo(ammoGained);
         
         Debug.Log($"Absorbed {damageAbsorbed} damage and converted to {ammoGained:F2} ammo! Total Ammo: {ammo:F2}/{maxAmmo}");
+    }
+
+    /// <summary>
+    /// Adds a specific amount of ammo to the player's pool.
+    /// </summary>
+    public void AddAmmo(float amount)
+    {
+        ammo = Mathf.Clamp(ammo + amount, 0f, maxAmmo);
     }
 
     /// <summary>
