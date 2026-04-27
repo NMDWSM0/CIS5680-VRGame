@@ -44,7 +44,10 @@ public class EnemyShooter : MonoBehaviour
 
     private void Start()
     {
-        rb = enemy.GetComponent<Rigidbody>();
+        if(enemy){
+            
+            rb = enemy.GetComponent<Rigidbody>();
+        }
 
         // Automatically try to find the player's Main Camera
         if (Camera.main != null)
@@ -103,7 +106,7 @@ public class EnemyShooter : MonoBehaviour
 
     private void ShootAtPlayer()
     {
-        Debug.Log("Angular velocity: " + rb.angularVelocity.magnitude);
+        // Debug.Log("Angular velocity: " + rb.angularVelocity.magnitude);
         // 0. Check if we are spinning too fast to aim/fire
         if (rb != null && rb.angularVelocity.magnitude > maxAngularVelocity)
         {

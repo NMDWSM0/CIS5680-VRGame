@@ -122,7 +122,7 @@ public class EnemyPatrol : MonoBehaviour
         }
         else
         {
-            transform.position = targetPosition;
+            //transform.position = targetPosition;
         }
 
         // 4. Handle rotation
@@ -150,11 +150,11 @@ public class EnemyPatrol : MonoBehaviour
             }
             else
             {
-                transform.rotation = Quaternion.Slerp(
-                    transform.rotation,
-                    targetRotation,
-                    rotationSpeed * Time.deltaTime
-                );
+                // transform.rotation = Quaternion.Slerp(
+                //     transform.rotation,
+                //     targetRotation,
+                //     rotationSpeed * Time.deltaTime
+                // );
             }
         }
     }

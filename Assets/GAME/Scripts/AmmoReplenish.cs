@@ -14,7 +14,7 @@ public class AmmoReplenish : MonoBehaviour
     [Tooltip("How fast the projectile accelerates.")]
     public float acceleration = 20f;
 
-    private Transform playerTarget;
+    public Transform playerTarget;
     private Rigidbody rb;
     private bool hasCollided = false;
     private PlayerStatus hitPlayerRef = null;
@@ -29,10 +29,19 @@ public class AmmoReplenish : MonoBehaviour
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
 
-        // Automatically find the player's head (Main Camera) as the target
-        if (Camera.main != null)
+        // Automatically find the player's shield as the target
+        if (playerTarget == null)
         {
-            playerTarget = Camera.main.transform;
+            GameObject shieldObj = GameObject.Find("Shield");
+            if (shieldObj != null)
+            {
+                playerTarget = shieldObj.transform;
+            }
+            else
+            {
+                // Fallback to Main Camera if Shield is not found
+                playerTarget = Camera.main?.transform;
+            }
         }
 
         // Automatically destroy if it misses or takes too long

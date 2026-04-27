@@ -57,11 +57,17 @@ public class Enemy : MonoBehaviour, IEnemy
     [Tooltip("The target transform the enemy tries to stay aligned with. If null, it will create one automatically.")]
     public Transform targetTransform;
 
+    [Tooltip("Whether to use position spring damping to move towards the target.")]
+    public bool usePositionSpringDamping = true;
+
     [Tooltip("How stiff the position spring is.")]
     public float positionSpringStiffness = 10f;
 
     [Tooltip("How much damping is applied to the position spring.")]
     public float positionDamping = 1f;
+
+    [Tooltip("Whether to use rotation spring damping to align with the target.")]
+    public bool useRotationSpringDamping = true;
 
     [Tooltip("How stiff the rotation spring is.")]
     public float rotationSpringStiffness = 10f;
@@ -188,44 +194,49 @@ public class Enemy : MonoBehaviour, IEnemy
         // 0. Handle movement toward targetTransform using forces (not direct position manipulation)
         if (targetTransform != null && !isDead)
         {
-            // Position "Spring": Apply force to pull towards target
-            Vector3 posError = targetTransform.position - transform.position;
-            Vector3 currentVelocity = rb.velocity;
-
-            // TODO calculate force to minimize posError and prevent overshooting
-            // 1. 计算弹簧力 (Proportional term)：距离越远，拉力越大
-            Vector3 springForce = posError * positionSpringStiffness;
-            
-            // 2. 计算阻尼力 (Derivative term)：速度越快，反向阻力越大（这就是防止过冲的核心）
-            // 注意：如果 targetTransform 也是一个正在移动的刚体，这里最好使用相对速度 (rb.velocity - targetRb.velocity)
-            Vector3 dampingForce = -currentVelocity * positionDamping;
-            
-            // 3. 应用合力
-            // 使用 ForceMode.Acceleration 忽略质量影响，这样调节参数时更直观
-            rb.AddForce(springForce + dampingForce, ForceMode.Acceleration);
-
-            // --- [旋转控制部分] ---
-            // Rotation "Spring": Apply torque to align with target rotation
-            Quaternion rotError = targetTransform.rotation * Quaternion.Inverse(transform.rotation);
-            rotError.ToAngleAxis(out float angle, out Vector3 axis);
-            
-            if (angle > 180) angle -= 360; // Get the shortest path
-            
-            // 确保 Axis 是有效的
-            if (!float.IsNaN(axis.x) && !float.IsInfinity(axis.x))
+            if (usePositionSpringDamping)
             {
-                // 1. 计算旋转弹簧扭矩 (Proportional term)
-                // Unity 的角速度是基于弧度(Radians)的，因此我们将角度(Degrees)转为弧度，这样调参手感与位置完全一致
-                Vector3 angularError = axis.normalized * (angle * Mathf.Deg2Rad);
-                Vector3 springTorque = angularError * rotationSpringStiffness;
+                // Position "Spring": Apply force to pull towards target
+                Vector3 posError = targetTransform.position - transform.position;
+                Vector3 currentVelocity = rb.velocity;
 
-                // 2. 计算旋转阻尼扭矩 (Derivative term)
-                // 阻力方向与当前角速度方向相反
-                Vector3 dampingTorque = -rb.angularVelocity * rotationDamping;
+                // 1. 计算弹簧力 (Proportional term)：距离越远，拉力越大
+                Vector3 springForce = posError * positionSpringStiffness;
 
-                // 3. 施加合力矩
-                // 当角度极小（如小于 0.1度）时，弹簧扭矩几乎为0，此时阻尼扭矩会主导，让物体平稳停下
-                rb.AddTorque(springTorque + dampingTorque, ForceMode.Acceleration);
+                // 2. 计算阻尼力 (Derivative term)：速度越快，反向阻力越大（这就是防止过冲的核心）
+                // 注意：如果 targetTransform 也是一个正在移动的刚体，这里最好使用相对速度 (rb.velocity - targetRb.velocity)
+                Vector3 dampingForce = -currentVelocity * positionDamping;
+
+                // 3. 应用合力
+                // 使用 ForceMode.Acceleration 忽略质量影响，这样调节参数时更直观
+                rb.AddForce(springForce + dampingForce, ForceMode.Acceleration);
+            }
+
+            if (useRotationSpringDamping)
+            {
+                // --- [旋转控制部分] ---
+                // Rotation "Spring": Apply torque to align with target rotation
+                Quaternion rotError = targetTransform.rotation * Quaternion.Inverse(transform.rotation);
+                rotError.ToAngleAxis(out float angle, out Vector3 axis);
+
+                if (angle > 180) angle -= 360; // Get the shortest path
+
+                // 确保 Axis 是有效的
+                if (!float.IsNaN(axis.x) && !float.IsInfinity(axis.x))
+                {
+                    // 1. 计算旋转弹簧扭矩 (Proportional term)
+                    // Unity 的角速度是基于弧度(Radians)的，因此我们将角度(Degrees)转为弧度，这样调参手感与位置完全一致
+                    Vector3 angularError = axis.normalized * (angle * Mathf.Deg2Rad);
+                    Vector3 springTorque = angularError * rotationSpringStiffness;
+
+                    // 2. 计算旋转阻尼扭矩 (Derivative term)
+                    // 阻力方向与当前角速度方向相反
+                    Vector3 dampingTorque = -rb.angularVelocity * rotationDamping;
+
+                    // 3. 施加合力矩
+                    // 当角度极小（如小于 0.1度）时，弹簧扭矩几乎为0，此时阻尼扭矩会主导，让物体平稳停下
+                    rb.AddTorque(springTorque + dampingTorque, ForceMode.Acceleration);
+                }
             }
         }
     }

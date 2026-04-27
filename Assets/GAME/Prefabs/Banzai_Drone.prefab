@@ -4342,19 +4342,22 @@ MonoBehaviour:
   weaponDetachForce: 15
   detachOnDeath: 0
   bodyCleanupTime: 5
+  fallAndExplode: 1
   healthText: {fileID: 0}
   healthUiPosition: {x: 0, y: 1.6, z: 0}
   generateHealthBar: 1
   deathSound: {fileID: 0}
   deathSoundVolume: 1
-  ammoReplenishPrefab: {fileID: 0}
-  ammoReplenishCount: 3
+  ammoReplenishPrefab: {fileID: 4422466098594693543, guid: 5612fe451f04aba43bb6e74be8715c10, type: 3}
+  ammoReplenishCount: 1
   knockbackImpulse: 40
   hitTorqueImpulse: 200
   targetTransform: {fileID: 0}
+  usePositionSpringDamping: 1
   positionSpringStiffness: 5
   positionDamping: 6
-  rotationSpringStiffness: 625
+  useRotationSpringDamping: 1
+  rotationSpringStiffness: 312
   rotationDamping: 12.5
 --- !u!114 &5758045836505103364
 MonoBehaviour:
