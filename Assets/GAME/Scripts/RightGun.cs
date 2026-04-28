@@ -229,7 +229,7 @@ public class RightGun : MonoBehaviour
                         Vector3 targetPos = col.bounds.center;
                         Vector3 toTarget = targetPos - spawnPoint.position;
                         float dist = toTarget.magnitude;
-                        float smallAngle = 5f;
+                        float smallAngle = 15f;
 
                         if (dist < closestDist)
                         {
@@ -320,7 +320,7 @@ public class RightGun : MonoBehaviour
     /// </summary>
     private float CalculateFinalDamage()
     {
-        float damage = baseDamage - (multishot - 1) * 0.5f;
+        float damage = baseDamage;
         
         if (playerStatus != null)
         {

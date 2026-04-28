@@ -7,6 +7,7 @@ TagManager:
   - Anchor
   - Enemy
   - Gun
+  - ThreatRing
   layers:
   - Default
   - TransparentFX

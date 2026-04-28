@@ -86,7 +86,7 @@ public static class BuffDatabase
 
         // gold buffs
         new Buff(BuffType.Penetration, "Penetration", "Bullets can penetrate through enemies, but deal {0} damage. (Choose again will increase penetration damage by that amount)", 0.2f, true, true),
-        new Buff(BuffType.Multishot, "Multishot", "Shoot 2 more lasers each time, but each's damage is reduced and cost more ammo. (Max 7 lasers)", 2f, false, true),
+        new Buff(BuffType.Multishot, "Multishot", "Shoot 2 more lasers each time, but cost more ammo. (Max 7 lasers)", 2f, false, true),
         new Buff(BuffType.HomingLasers, "Homing Lasers", "Lasers can track enemies in some angle range.", 0f, false, true),
     };
 }

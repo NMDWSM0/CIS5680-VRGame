@@ -50,7 +50,7 @@ public class EnemyManager : MonoBehaviour
             foreach (var groupState in activeGroups)
             {
                 // Clean up dead enemies
-                groupState.aliveEnemies.RemoveAll(enemy => enemy == null);
+                groupState.aliveEnemies.RemoveAll(enemy => enemy == null || enemy.GetComponent<Enemy>().IsDead);
 
                 // Spawn more if under max on stage limit and haven't spawned total count
                 while (groupState.aliveEnemies.Count < groupState.config.maxOnStage && !groupState.IsFullySpawned)

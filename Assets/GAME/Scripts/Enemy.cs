@@ -79,11 +79,23 @@ public class Enemy : MonoBehaviour, IEnemy
     private Transform uiRoot; // A parent object to hold both the text and the bar
     private Transform healthBarForeground; // The green part of the bar that shrinks
     private bool isDead = false;
+    public bool IsDead => isDead;
     private bool isFalling = false;
     private Rigidbody rb;
+    private MultiThreatRing threatRing;
 
     private void Start()
     {
+        GameObject ringObj = GameObject.FindGameObjectWithTag("ThreatRing");
+        if (ringObj != null)
+        {
+            threatRing = ringObj.GetComponent<MultiThreatRing>();
+            if (threatRing != null && !threatRing.activeEnemies.Contains(transform))
+            {
+                threatRing.activeEnemies.Add(transform);
+            }
+        }
+
         maxHealth = health;
 
         // If the user hasn't manually assigned a healthText, we generate the UI hierarchy automatically
@@ -383,6 +395,11 @@ public class Enemy : MonoBehaviour, IEnemy
         if (isDead) return;
         isDead = true;
 
+        if (threatRing != null && threatRing.activeEnemies.Contains(transform))
+        {
+            threatRing.activeEnemies.Remove(transform);
+        }
+
         // Broadcast that the enemy is dead so other components (like EnemyShooter) can react
         SendMessage("OnEnemyDead", SendMessageOptions.DontRequireReceiver);
 
@@ -512,5 +529,13 @@ public class Enemy : MonoBehaviour, IEnemy
 
         // Clean up the dead body after a delay
         Destroy(gameObject, bodyCleanupTime);
+    }
+
+    private void OnDestroy()
+    {
+        if (threatRing != null && threatRing.activeEnemies.Contains(transform))
+        {
+            threatRing.activeEnemies.Remove(transform);
+        }
     }
 }
