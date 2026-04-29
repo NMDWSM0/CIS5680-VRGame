@@ -312,6 +312,9 @@ public class Enemy : MonoBehaviour, IEnemy
         {
             // Calculate a knockback vector (away from player)
             Vector3 directionFromPlayer = (transform.position - Camera.main.transform.position).normalized;
+
+            // smaller knockback in y direction
+            directionFromPlayer.y *= 0.3f;
             
             // 1. Apply a direct linear impulse for consistent push-back
             rb.AddForce(directionFromPlayer * knockbackImpulse, ForceMode.Impulse);
@@ -402,6 +405,10 @@ public class Enemy : MonoBehaviour, IEnemy
 
         // Broadcast that the enemy is dead so other components (like EnemyShooter) can react
         SendMessage("OnEnemyDead", SendMessageOptions.DontRequireReceiver);
+
+        // 0. stop playing sound of this enemy
+        AudioSource music = GetComponent<AudioSource>();
+        music.Stop();
 
         // 1. Play death sound
         if (deathSound != null)

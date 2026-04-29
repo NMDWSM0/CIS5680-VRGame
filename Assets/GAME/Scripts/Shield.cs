@@ -31,19 +31,11 @@ public class Shield : MonoBehaviour
         PlayerStatus playerStatus = GetComponentInParent<PlayerStatus>();
         if (playerStatus != null)
         {
-            if (playerStatus.ammo >= playerStatus.maxAmmo)
+            bool overflow = Absorb(bullet.damage);
+            if (overflow)
             {
                 ReflectBullet(bullet);
             }
-            else
-            {
-                Absorb(bullet.damage);
-            }
-        }
-        else
-        {
-            // Fallback if no PlayerStatus is found
-            Absorb(bullet.damage);
         }
 
         // Trigger vibration
@@ -53,7 +45,7 @@ public class Shield : MonoBehaviour
     /// <summary>
     /// Legacy absorb method if needed, but ProcessHit is preferred.
     /// </summary>
-    public void Absorb(float incomingDamage)
+    public bool Absorb(float incomingDamage)
     {
         Debug.Log($"Shield successfully absorbed {incomingDamage} damage!");
         
@@ -61,11 +53,13 @@ public class Shield : MonoBehaviour
         PlayerStatus playerStatus = GetComponentInParent<PlayerStatus>();
         if (playerStatus != null)
         {
-            playerStatus.AddAmmoFromDamage(incomingDamage);
+            float overflowedAmmo = playerStatus.AddAmmoFromDamage(incomingDamage);
+            return overflowedAmmo > 0;
         }
         else
         {
             Debug.LogWarning("Shield absorbed damage but couldn't find PlayerStatus to give ammo to!");
+            return false;
         }
     }
 

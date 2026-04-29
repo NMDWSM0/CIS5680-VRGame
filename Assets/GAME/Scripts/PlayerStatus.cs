@@ -41,10 +41,13 @@ public class PlayerStatus : MonoBehaviour
     public bool isGameOver = false;
 
     private EnemyManager _enemyManager;
+    private PlayerHitEffect[] _hitEffects;
 
     private void Start()
     {
         _enemyManager = FindObjectOfType<EnemyManager>();
+
+        _hitEffects = FindObjectsOfType<PlayerHitEffect>();
     }
 
     private void Update()
@@ -62,20 +65,24 @@ public class PlayerStatus : MonoBehaviour
     /// Called when the player's shield absorbs incoming damage.
     /// Converts that absorbed damage into ammunition!
     /// </summary>
-    public void AddAmmoFromDamage(float damageAbsorbed)
+    public float AddAmmoFromDamage(float damageAbsorbed)
     {
         float ammoGained = damageAbsorbed * ammoEfficiency * 0.5f;
-        AddAmmo(ammoGained);
+        float overflowedAmmo = AddAmmo(ammoGained);
         
         Debug.Log($"Absorbed {damageAbsorbed} damage and converted to {ammoGained:F2} ammo! Total Ammo: {ammo:F2}/{maxAmmo}");
+        return overflowedAmmo;
     }
 
     /// <summary>
     /// Adds a specific amount of ammo to the player's pool.
     /// </summary>
-    public void AddAmmo(float amount)
+    public float AddAmmo(float amount)
     {
-        ammo = Mathf.Clamp(ammo + amount, 0f, maxAmmo);
+        float totalAmmo = ammo + amount;
+        ammo = Mathf.Clamp(totalAmmo, 0f, maxAmmo);
+        float overflowedAmmo = Mathf.Max(totalAmmo - maxAmmo, 0f);
+        return overflowedAmmo;
     }
 
     /// <summary>
@@ -103,6 +110,12 @@ public class PlayerStatus : MonoBehaviour
         // Trigger vibration
         ControllerVibration.VibrateLeft(0.2f, 0.5f);
         ControllerVibration.VibrateRight(0.2f, 0.5f);
+
+        // Trigger the screen hit flash effect if present
+        foreach (var effect in _hitEffects)
+        {
+            effect.TriggerHit();
+        }
 
         // Example logic for updating a UI on your screen, playing a damage grunt sound, etc., can go here!
 

@@ -205,6 +205,10 @@ public class SuicideDrone : MonoBehaviour, IEnemy
 
         Debug.Log($"<color=red>SuicideDrone:</color> {gameObject.name} is locking on! WARNING started.");
 
+        var originalClip = audioSource.clip;
+        var originalVolume = audioSource.volume;
+        var originalLoop = audioSource.loop;
+        
         // Play alarm
         if (alarmSound != null && audioSource != null)
         {
@@ -227,6 +231,11 @@ public class SuicideDrone : MonoBehaviour, IEnemy
         if (audioSource != null && audioSource.clip == alarmSound)
         {
             audioSource.Stop();
+            // resume original sound
+            audioSource.clip = originalClip;
+            audioSource.volume = originalVolume;
+            audioSource.loop = originalLoop;
+            audioSource.Play();
         }
 
         currentState = DroneState.Charging;

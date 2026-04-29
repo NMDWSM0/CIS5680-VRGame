@@ -121,9 +121,8 @@ public class AmmoReplenish : MonoBehaviour
             {
                 hitPlayerRef.AddAmmo(replenishAmount);
                 
-                // Trigger a small vibration on both controllers to notify the player
-                ControllerVibration.VibrateLeft(0.3f, 0.1f);
-                ControllerVibration.VibrateRight(0.3f, 0.1f);
+                // Trigger a small vibration on left controller to notify the player
+                ControllerVibration.VibrateLeft(0.3f, 0.05f);
             }
 
             // Destroy the projectile on any collision

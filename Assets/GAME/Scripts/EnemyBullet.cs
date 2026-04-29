@@ -21,8 +21,11 @@ public class EnemyBullet : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         hasCollided = true;
+        hitShieldRef = null;
+        hitPlayerRef = null;
 
         var playerParent = other.transform?.parent?.parent;
+        var player = other.gameObject.CompareTag("Player") ? other.gameObject : (playerParent && playerParent.gameObject.CompareTag("Player") ? playerParent.gameObject : null);
 
         // Check if it's the Shield
         Shield shield = other.gameObject.GetComponentInParent<Shield>();
@@ -31,18 +34,22 @@ public class EnemyBullet : MonoBehaviour
             hitShieldRef = shield;
         }
         // Otherwise check if the collided object is the player
-        else if (playerParent && playerParent.gameObject.CompareTag("Player"))
+        else if (player)
         {
             // GetComponentInParent will search the camera and traverse up safely to find it!
-            PlayerStatus player = playerParent.gameObject.GetComponentInParent<PlayerStatus>();
-            if (player != null)
+            PlayerStatus playerStatus = player.GetComponent<PlayerStatus>();
+            if (playerStatus != null)
             {
-                hitPlayerRef = player;
+                hitPlayerRef = playerStatus;
             }
             else
             {
                 Debug.LogWarning("EnemyBullet hit an object tagged 'Player', but no PlayerStatus script was found on it or its parents!");
             }
+        }
+        else
+        {
+            Debug.Log("Bullet hit something else: " + other.gameObject.name + ", Tag: " + other.gameObject.tag);
         }
     }
 
