@@ -408,7 +408,10 @@ public class Enemy : MonoBehaviour, IEnemy
 
         // 0. stop playing sound of this enemy
         AudioSource music = GetComponent<AudioSource>();
-        music.Stop();
+        if (music != null)
+        {
+            music.Stop();
+        }
 
         // 1. Play death sound
         if (deathSound != null)
