@@ -4351,7 +4351,7 @@ MonoBehaviour:
   deathSoundVolume: 1
   ammoReplenishPrefab: {fileID: 4422466098594693543, guid: 5612fe451f04aba43bb6e74be8715c10, type: 3}
   ammoReplenishCount: 1
-  knockbackImpulse: 20
+  knockbackImpulse: 18
   hitTorqueImpulse: 200
   targetTransform: {fileID: 0}
   usePositionSpringDamping: 1

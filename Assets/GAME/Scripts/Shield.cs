@@ -9,6 +9,9 @@ public class Shield : MonoBehaviour
     [Tooltip("Speed of the reflected bullet.")]
     public float reflectSpeed = 20f;
 
+    [Tooltip("If true, the reflected bullet will home in on enemies.")]
+    public bool homing = false;
+
     [Header("VFX Settings")]
     [Tooltip("The power-up particle (e.g. det_01_ad) to show when ammo is full.")]
     public GameObject powerParticle;
@@ -77,6 +80,42 @@ public class Shield : MonoBehaviour
 
         // Reflect using the shield's up as the normal
         Vector3 reflectDir = Vector3.Reflect(incomingDir, transform.up);
+
+        if (homing)
+        {
+            float closestDist = 100f; // maxDistance
+            Vector3 bestTargetPos = Vector3.zero;
+            bool foundTarget = false;
+
+            Collider[] hitColliders = Physics.OverlapSphere(bullet.transform.position, 100f);
+            foreach (Collider col in hitColliders)
+            {
+                if (col.CompareTag("Enemy") || col.CompareTag("Gun"))
+                {
+                    Vector3 targetPos = col.bounds.center;
+                    Vector3 toTarget = targetPos - bullet.transform.position;
+                    float dist = toTarget.magnitude;
+                    float smallAngle = 30f;
+
+                    if (dist < closestDist)
+                    {
+                        float angle = Vector3.Angle(reflectDir, toTarget);
+                        if (angle <= smallAngle)
+                        {
+                            smallAngle = angle;
+                            bestTargetPos = targetPos;
+                            foundTarget = true;
+                        }
+                    }
+                }
+            }
+
+            if (foundTarget)
+            {
+                Vector3 toTarget = bestTargetPos - bullet.transform.position;
+                reflectDir = toTarget.normalized;
+            }
+        }
 
         GameObject reflectedBullet;
 

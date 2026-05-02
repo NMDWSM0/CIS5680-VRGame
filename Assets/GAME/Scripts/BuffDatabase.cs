@@ -80,7 +80,7 @@ public static class BuffDatabase
         new Buff(BuffType.DamageBoost, "Damage Boost", "Increases your attack damage by {0}.", 0.08f, true),
         new Buff(BuffType.CritChance, "Critical Hit Chance", "Increases the chance of landing a critical hit by {0}.", 0.05f, true),
         new Buff(BuffType.AmmoEfficiency, "Ammo Efficiency", "Increases ammo gained from absorbing damage by {0}.", 0.12f, true),
-        new Buff(BuffType.AutoAmmoRecharge, "Auto Ammo Recharge", "Increases ammo auto recharge rate by {0} per second.", 0.05f),
+        new Buff(BuffType.AutoAmmoRecharge, "Auto Ammo Recharge", "Increases ammo auto recharge rate by {0} per second.", 0.08f),
         new Buff(BuffType.HealthSteal, "Health Steal", "Increases the healing you receive from dealing damage by {0}.", 0.01f, true),
         new Buff(BuffType.ShieldSize, "Bigger Shield", "Increases your shield's covering area by {0}.", 0.1f, true),
 
